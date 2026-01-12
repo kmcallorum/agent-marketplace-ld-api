@@ -4,7 +4,8 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import bcrypt
-from jose import JWTError, jwt
+import jwt
+from jwt import DecodeError, ExpiredSignatureError
 
 from agent_marketplace_api.config import get_settings
 
@@ -89,7 +90,7 @@ def create_refresh_token(
 def verify_token(token: str, token_type: str = "access") -> dict[str, Any]:
     """Verify and decode a JWT token."""
     try:
-        payload = jwt.decode(
+        payload: dict[str, Any] = jwt.decode(
             token,
             settings.jwt_secret_key,
             algorithms=[settings.jwt_algorithm],
@@ -100,20 +101,21 @@ def verify_token(token: str, token_type: str = "access") -> dict[str, Any]:
 
         return payload
 
-    except JWTError as e:
-        if "expired" in str(e).lower():
-            raise TokenExpiredError("Token has expired") from e
+    except ExpiredSignatureError as e:
+        raise TokenExpiredError("Token has expired") from e
+    except DecodeError as e:
         raise InvalidTokenError("Invalid token") from e
 
 
 def decode_token_without_verification(token: str) -> dict[str, Any]:
     """Decode a token without verifying signature (for debugging)."""
     try:
-        return jwt.decode(
+        payload: dict[str, Any] = jwt.decode(
             token,
             settings.jwt_secret_key,
             algorithms=[settings.jwt_algorithm],
             options={"verify_signature": False, "verify_exp": False},
         )
-    except JWTError as e:
+        return payload
+    except DecodeError as e:
         raise InvalidTokenError("Invalid token format") from e
