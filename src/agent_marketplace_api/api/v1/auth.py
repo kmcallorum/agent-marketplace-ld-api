@@ -1,0 +1,142 @@
+"""Authentication API endpoints."""
+
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from agent_marketplace_api.auth import (
+    GitHubOAuthError,
+    exchange_github_code,
+    get_github_user,
+)
+from agent_marketplace_api.database import get_db
+from agent_marketplace_api.repositories.user_repo import UserRepository
+from agent_marketplace_api.schemas import UserResponse
+from agent_marketplace_api.security import (
+    InvalidTokenError,
+    TokenExpiredError,
+    create_access_token,
+    create_refresh_token,
+    verify_token,
+)
+from agent_marketplace_api.services.user_service import UserService
+
+router = APIRouter()
+
+
+class GitHubAuthRequest(BaseModel):
+    """Request body for GitHub OAuth."""
+
+    code: str
+
+
+class TokenResponse(BaseModel):
+    """Response with JWT tokens."""
+
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+    user: UserResponse
+
+
+class RefreshRequest(BaseModel):
+    """Request body for token refresh."""
+
+    refresh_token: str
+
+
+class AccessTokenResponse(BaseModel):
+    """Response with new access token."""
+
+    access_token: str
+    token_type: str = "bearer"
+
+
+@router.post("/github", response_model=TokenResponse)
+async def github_auth(
+    request: GitHubAuthRequest,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> TokenResponse:
+    """Authenticate with GitHub OAuth code."""
+    try:
+        # Exchange code for GitHub access token
+        github_token = await exchange_github_code(request.code)
+
+        # Get user info from GitHub
+        github_user = await get_github_user(github_token)
+
+        # Get or create user in our database
+        user_repo = UserRepository(db)
+        user_service = UserService(user_repo)
+        user = await user_service.get_or_create_from_github(github_user)
+
+        # Create JWT tokens
+        token_data = {"sub": str(user.id), "username": user.username}
+        access_token = create_access_token(token_data)
+        refresh_token = create_refresh_token(token_data)
+
+        return TokenResponse(
+            access_token=access_token,
+            refresh_token=refresh_token,
+            user=UserResponse.model_validate(user),
+        )
+
+    except GitHubOAuthError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        ) from e
+
+
+@router.post("/refresh", response_model=AccessTokenResponse)
+async def refresh_token(
+    request: RefreshRequest,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> AccessTokenResponse:
+    """Refresh access token using refresh token."""
+    try:
+        payload = verify_token(request.refresh_token, token_type="refresh")
+        user_id = payload.get("sub")
+
+        if not user_id:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token payload",
+            )
+
+        # Verify user still exists
+        user_repo = UserRepository(db)
+        user = await user_repo.get(int(user_id))
+
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User not found",
+            )
+
+        # Create new access token
+        token_data = {"sub": str(user.id), "username": user.username}
+        access_token = create_access_token(token_data)
+
+        return AccessTokenResponse(access_token=access_token)
+
+    except TokenExpiredError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Refresh token has expired",
+        ) from e
+    except InvalidTokenError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid refresh token",
+        ) from e
+
+
+@router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
+async def logout() -> None:
+    """Logout user (client should discard tokens)."""
+    # JWT tokens are stateless, so logout is handled client-side
+    # In a production app, you might want to blacklist the token
+    return None
