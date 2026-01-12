@@ -1,9 +1,14 @@
 # Agent Marketplace API
 
-[![CI](https://github.com/kmcallorum/agent-marketplace-api/actions/workflows/ci.yml/badge.svg)](https://github.com/kmcallorum/agent-marketplace-api/actions/workflows/ci.yml)
-[![Coverage](https://img.shields.io/badge/coverage-99%25-brightgreen)](https://github.com/kmcallorum/agent-marketplace-api)
-[![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/downloads/)
-[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![PyPI](https://img.shields.io/pypi/v/agent-marketplace-ld-api)](https://pypi.org/project/agent-marketplace-ld-api/)
+[![CI](https://github.com/kmcallorum/agent-marketplace-ld-api/actions/workflows/ci.yml/badge.svg)](https://github.com/kmcallorum/agent-marketplace-ld-api/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/kmcallorum/agent-marketplace-ld-api/branch/main/graph/badge.svg)](https://codecov.io/gh/kmcallorum/agent-marketplace-ld-api)
+[![Snyk Security](https://snyk.io/test/github/kmcallorum/agent-marketplace-ld-api/badge.svg)](https://snyk.io/test/github/kmcallorum/agent-marketplace-ld-api)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Type Checked: mypy](https://img.shields.io/badge/type%20checked-mypy-blue)](https://mypy-lang.org/)
+[![pytest-agents](https://img.shields.io/badge/built%20for-pytest--agents-purple)](https://github.com/pytest-agents/pytest-agents)
 
 FastAPI backend for Agent Marketplace - the central hub for discovering, publishing, and managing AI agents built with pytest-agents.
 
@@ -38,8 +43,8 @@ FastAPI backend for Agent Marketplace - the central hub for discovering, publish
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/kmcallorum/agent-marketplace-api.git
-cd agent-marketplace-api
+git clone https://github.com/kmcallorum/agent-marketplace-ld-api.git
+cd agent-marketplace-ld-api
 ```
 
 2. Start infrastructure services:
