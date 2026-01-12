@@ -102,7 +102,9 @@ class TestValidateAgentTask:
         mock_session_cm.__aenter__ = AsyncMock(return_value=mock_session)
         mock_session_cm.__aexit__ = AsyncMock(return_value=None)
 
-        with patch("agent_marketplace_api.database.async_session_maker", return_value=mock_session_cm):
+        with patch(
+            "agent_marketplace_api.database.async_session_maker", return_value=mock_session_cm
+        ):
             await _update_validation_status(1, "running")
 
         # Version should be updated
@@ -128,7 +130,9 @@ class TestValidateAgentTask:
         mock_session_cm.__aenter__ = AsyncMock(return_value=mock_session)
         mock_session_cm.__aexit__ = AsyncMock(return_value=None)
 
-        with patch("agent_marketplace_api.database.async_session_maker", return_value=mock_session_cm):
+        with patch(
+            "agent_marketplace_api.database.async_session_maker", return_value=mock_session_cm
+        ):
             await _update_validation_status(1, "failed", "Error message")
 
         assert mock_version.tested is True
@@ -152,7 +156,9 @@ class TestValidateAgentTask:
         mock_session_cm.__aenter__ = AsyncMock(return_value=mock_session)
         mock_session_cm.__aexit__ = AsyncMock(return_value=None)
 
-        with patch("agent_marketplace_api.database.async_session_maker", return_value=mock_session_cm):
+        with patch(
+            "agent_marketplace_api.database.async_session_maker", return_value=mock_session_cm
+        ):
             # Should not raise
             await _update_validation_status(999, "running")
 
@@ -188,7 +194,9 @@ class TestValidateAgentTask:
             quality_result=QualityResult(passed=True, lint_score=90.0),
         )
 
-        with patch("agent_marketplace_api.database.async_session_maker", return_value=mock_session_cm):
+        with patch(
+            "agent_marketplace_api.database.async_session_maker", return_value=mock_session_cm
+        ):
             await _update_validation_results(1, validation_result)
 
         from decimal import Decimal
@@ -222,7 +230,9 @@ class TestValidateAgentTask:
 
         validation_result = ValidationResult(status=ValidationStatus.PASSED)
 
-        with patch("agent_marketplace_api.database.async_session_maker", return_value=mock_session_cm):
+        with patch(
+            "agent_marketplace_api.database.async_session_maker", return_value=mock_session_cm
+        ):
             # Should not raise
             await _update_validation_results(999, validation_result)
 
@@ -253,7 +263,9 @@ class TestValidateAgentTask:
         # No security or quality results
         validation_result = ValidationResult(status=ValidationStatus.PASSED)
 
-        with patch("agent_marketplace_api.database.async_session_maker", return_value=mock_session_cm):
+        with patch(
+            "agent_marketplace_api.database.async_session_maker", return_value=mock_session_cm
+        ):
             await _update_validation_results(1, validation_result)
 
         assert mock_version.tested is True
@@ -302,8 +314,13 @@ class TestRunValidation:
             mock_session_cm.__aenter__ = AsyncMock(return_value=mock_session)
             mock_session_cm.__aexit__ = AsyncMock(return_value=None)
 
-            with patch("agent_marketplace_api.storage.get_storage_service", return_value=mock_storage):
-                with patch("agent_marketplace_api.database.async_session_maker", return_value=mock_session_cm):
+            with patch(
+                "agent_marketplace_api.storage.get_storage_service", return_value=mock_storage
+            ):
+                with patch(
+                    "agent_marketplace_api.database.async_session_maker",
+                    return_value=mock_session_cm,
+                ):
                     result = await _run_validation(1, "agents/test.zip")
 
             assert isinstance(result, dict)
@@ -339,7 +356,9 @@ class TestValidateAgentTaskExecution:
             mock_validation.side_effect = MaxRetriesExceededError()
 
             # Mock _update_validation_status
-            with patch("agent_marketplace_api.tasks.validation._update_validation_status") as mock_update:
+            with patch(
+                "agent_marketplace_api.tasks.validation._update_validation_status"
+            ) as mock_update:
                 mock_update.return_value = None
 
                 with pytest.raises(MaxRetriesExceededError):
@@ -395,12 +414,18 @@ class TestValidateAgentTaskExecution:
                 mock_session_cm.__aenter__ = AsyncMock(return_value=mock_session)
                 mock_session_cm.__aexit__ = AsyncMock(return_value=None)
 
-                with patch("agent_marketplace_api.storage.get_storage_service", return_value=mock_storage):
-                    with patch("agent_marketplace_api.database.async_session_maker", return_value=mock_session_cm):
+                with patch(
+                    "agent_marketplace_api.storage.get_storage_service", return_value=mock_storage
+                ):
+                    with patch(
+                        "agent_marketplace_api.database.async_session_maker",
+                        return_value=mock_session_cm,
+                    ):
                         result = await _run_validation(1, "agents/test.zip")
 
                 assert isinstance(result, dict)
                 assert "status" in result
 
         import asyncio
+
         asyncio.run(run_test())

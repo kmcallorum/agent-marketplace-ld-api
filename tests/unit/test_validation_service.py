@@ -173,8 +173,12 @@ class TestValidationService:
             code_file.write_text("x = 1")
 
             with patch.object(service._scanner, "scan", new_callable=AsyncMock) as mock_scan:
-                with patch.object(service._quality_checker, "check", new_callable=AsyncMock) as mock_check:
-                    with patch.object(service._test_runner, "run", new_callable=AsyncMock) as mock_run:
+                with patch.object(
+                    service._quality_checker, "check", new_callable=AsyncMock
+                ) as mock_check:
+                    with patch.object(
+                        service._test_runner, "run", new_callable=AsyncMock
+                    ) as mock_run:
                         mock_scan.return_value = ScanResult(passed=True)
                         mock_check.return_value = QualityResult(passed=True, lint_score=100.0)
                         mock_run.return_value = TestResult(passed=True)
@@ -195,8 +199,12 @@ class TestValidationService:
             code_file.write_text("x = 1")
 
             with patch.object(service._scanner, "scan", new_callable=AsyncMock) as mock_scan:
-                with patch.object(service._quality_checker, "check", new_callable=AsyncMock) as mock_check:
-                    with patch.object(service._test_runner, "run", new_callable=AsyncMock) as mock_run:
+                with patch.object(
+                    service._quality_checker, "check", new_callable=AsyncMock
+                ) as mock_check:
+                    with patch.object(
+                        service._test_runner, "run", new_callable=AsyncMock
+                    ) as mock_run:
                         mock_scan.return_value = ScanResult(passed=False)
                         mock_check.return_value = QualityResult(passed=True, lint_score=100.0)
                         mock_run.return_value = TestResult(passed=True)
@@ -219,8 +227,12 @@ class TestValidationService:
             code_file.write_text("x = 1")
 
             with patch.object(service._scanner, "scan", new_callable=AsyncMock) as mock_scan:
-                with patch.object(service._quality_checker, "check", new_callable=AsyncMock) as mock_check:
-                    with patch.object(service._test_runner, "run", new_callable=AsyncMock) as mock_run:
+                with patch.object(
+                    service._quality_checker, "check", new_callable=AsyncMock
+                ) as mock_check:
+                    with patch.object(
+                        service._test_runner, "run", new_callable=AsyncMock
+                    ) as mock_run:
                         mock_scan.return_value = ScanResult(passed=True)
                         mock_check.return_value = QualityResult(passed=False, lint_score=20.0)
                         mock_run.return_value = TestResult(passed=True)
@@ -242,8 +254,12 @@ class TestValidationService:
             code_file.write_text("x = 1")
 
             with patch.object(service._scanner, "scan", new_callable=AsyncMock) as mock_scan:
-                with patch.object(service._quality_checker, "check", new_callable=AsyncMock) as mock_check:
-                    with patch.object(service._test_runner, "run", new_callable=AsyncMock) as mock_run:
+                with patch.object(
+                    service._quality_checker, "check", new_callable=AsyncMock
+                ) as mock_check:
+                    with patch.object(
+                        service._test_runner, "run", new_callable=AsyncMock
+                    ) as mock_run:
                         mock_scan.return_value = ScanResult(passed=True)
                         mock_check.return_value = QualityResult(passed=True, lint_score=100.0)
                         mock_run.return_value = TestResult(passed=False, failed_tests=2)
@@ -265,8 +281,12 @@ class TestValidationService:
             code_file.write_text("x = 1")
 
             with patch.object(service._scanner, "scan", new_callable=AsyncMock) as mock_scan:
-                with patch.object(service._quality_checker, "check", new_callable=AsyncMock) as mock_check:
-                    with patch.object(service._test_runner, "run", new_callable=AsyncMock) as mock_run:
+                with patch.object(
+                    service._quality_checker, "check", new_callable=AsyncMock
+                ) as mock_check:
+                    with patch.object(
+                        service._test_runner, "run", new_callable=AsyncMock
+                    ) as mock_run:
                         mock_check.return_value = QualityResult(passed=True, lint_score=100.0)
                         mock_run.return_value = TestResult(passed=True)
 
@@ -287,8 +307,12 @@ class TestValidationService:
             code_file.write_text("x = 1")
 
             with patch.object(service._scanner, "scan", new_callable=AsyncMock) as mock_scan:
-                with patch.object(service._quality_checker, "check", new_callable=AsyncMock) as mock_check:
-                    with patch.object(service._test_runner, "run", new_callable=AsyncMock) as mock_run:
+                with patch.object(
+                    service._quality_checker, "check", new_callable=AsyncMock
+                ) as mock_check:
+                    with patch.object(
+                        service._test_runner, "run", new_callable=AsyncMock
+                    ) as mock_run:
                         mock_scan.return_value = ScanResult(passed=True)
                         mock_run.return_value = TestResult(passed=True)
 
@@ -308,8 +332,12 @@ class TestValidationService:
             code_file.write_text("x = 1")
 
             with patch.object(service._scanner, "scan", new_callable=AsyncMock) as mock_scan:
-                with patch.object(service._quality_checker, "check", new_callable=AsyncMock) as mock_check:
-                    with patch.object(service._test_runner, "run", new_callable=AsyncMock) as mock_run:
+                with patch.object(
+                    service._quality_checker, "check", new_callable=AsyncMock
+                ) as mock_check:
+                    with patch.object(
+                        service._test_runner, "run", new_callable=AsyncMock
+                    ) as mock_run:
                         mock_scan.return_value = ScanResult(passed=True)
                         mock_check.return_value = QualityResult(passed=True, lint_score=100.0)
 
@@ -362,7 +390,9 @@ class TestValidationService:
             code_file = Path(temp_dir) / "code.py"
             code_file.write_text("x = 1")
 
-            with patch.object(service._quality_checker, "check", new_callable=AsyncMock) as mock_check:
+            with patch.object(
+                service._quality_checker, "check", new_callable=AsyncMock
+            ) as mock_check:
                 mock_check.return_value = QualityResult(passed=True, lint_score=100.0)
 
                 result = await service.validate_quality_only(Path(temp_dir))

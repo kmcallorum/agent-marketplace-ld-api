@@ -51,9 +51,7 @@ async def test_agent(db_session: AsyncSession, test_author: User) -> Agent:
 
 
 @pytest.fixture
-async def test_review(
-    db_session: AsyncSession, test_agent: Agent, test_user: User
-) -> Review:
+async def test_review(db_session: AsyncSession, test_agent: Agent, test_user: User) -> Review:
     """Create a test review."""
     review = Review(
         agent_id=test_agent.id,
@@ -79,9 +77,7 @@ class TestReviewRepository:
     ) -> None:
         """Test getting reviews sorted by recent."""
         repo = ReviewRepository(db_session)
-        reviews = await repo.get_reviews_for_agent(
-            test_agent.id, limit=20, offset=0, sort="recent"
-        )
+        reviews = await repo.get_reviews_for_agent(test_agent.id, limit=20, offset=0, sort="recent")
 
         assert len(reviews) == 1
         assert reviews[0].rating == 4
@@ -95,9 +91,7 @@ class TestReviewRepository:
     ) -> None:
         """Test getting reviews sorted by rating."""
         repo = ReviewRepository(db_session)
-        reviews = await repo.get_reviews_for_agent(
-            test_agent.id, limit=20, offset=0, sort="rating"
-        )
+        reviews = await repo.get_reviews_for_agent(test_agent.id, limit=20, offset=0, sort="rating")
 
         assert len(reviews) == 1
         assert reviews[0].rating == 4

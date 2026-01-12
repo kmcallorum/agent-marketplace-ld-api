@@ -45,7 +45,9 @@ async def exchange_github_code(code: str) -> str:
         data = response.json()
 
         if "error" in data:
-            raise GitHubOAuthError(f"GitHub OAuth error: {data.get('error_description', data['error'])}")
+            raise GitHubOAuthError(
+                f"GitHub OAuth error: {data.get('error_description', data['error'])}"
+            )
 
         access_token = data.get("access_token")
         if not access_token:

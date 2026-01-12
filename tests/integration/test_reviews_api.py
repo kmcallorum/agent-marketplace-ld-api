@@ -146,9 +146,7 @@ class TestListReviews:
         existing_review: Review,  # noqa: ARG002
     ) -> None:
         """Test listing reviews with pagination."""
-        response = await client.get(
-            f"/api/v1/agents/{test_agent.slug}/reviews?limit=10&offset=0"
-        )
+        response = await client.get(f"/api/v1/agents/{test_agent.slug}/reviews?limit=10&offset=0")
 
         assert response.status_code == 200
 
@@ -160,9 +158,7 @@ class TestListReviews:
         existing_review: Review,  # noqa: ARG002
     ) -> None:
         """Test listing reviews sorted by recent."""
-        response = await client.get(
-            f"/api/v1/agents/{test_agent.slug}/reviews?sort=recent"
-        )
+        response = await client.get(f"/api/v1/agents/{test_agent.slug}/reviews?sort=recent")
 
         assert response.status_code == 200
         data = response.json()
@@ -176,9 +172,7 @@ class TestListReviews:
         existing_review: Review,  # noqa: ARG002
     ) -> None:
         """Test listing reviews sorted by rating."""
-        response = await client.get(
-            f"/api/v1/agents/{test_agent.slug}/reviews?sort=rating"
-        )
+        response = await client.get(f"/api/v1/agents/{test_agent.slug}/reviews?sort=rating")
 
         assert response.status_code == 200
         data = response.json()

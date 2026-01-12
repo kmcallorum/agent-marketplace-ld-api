@@ -103,9 +103,7 @@ class SecurityScanner:
 
         # Determine if scan passed based on threshold
         threshold_idx = self._severity_levels.index(self.severity_threshold)
-        passed = not any(
-            self._severity_levels.index(i.severity) >= threshold_idx for i in issues
-        )
+        passed = not any(self._severity_levels.index(i.severity) >= threshold_idx for i in issues)
 
         scan_duration = time.time() - start_time
 
@@ -188,11 +186,17 @@ class SecurityScanner:
         # Patterns that might indicate hardcoded secrets
         secret_patterns = [
             (r'(?i)(api[_-]?key|apikey)\s*[=:]\s*["\'][^"\']{10,}["\']', "Potential API key"),
-            (r'(?i)(secret[_-]?key|secretkey)\s*[=:]\s*["\'][^"\']{10,}["\']', "Potential secret key"),
-            (r'(?i)(password|passwd|pwd)\s*[=:]\s*["\'][^"\']{4,}["\']', "Potential hardcoded password"),
+            (
+                r'(?i)(secret[_-]?key|secretkey)\s*[=:]\s*["\'][^"\']{10,}["\']',
+                "Potential secret key",
+            ),
+            (
+                r'(?i)(password|passwd|pwd)\s*[=:]\s*["\'][^"\']{4,}["\']',
+                "Potential hardcoded password",
+            ),
             (r'(?i)(token)\s*[=:]\s*["\'][^"\']{10,}["\']', "Potential hardcoded token"),
-            (r'(?i)(aws[_-]?access[_-]?key)', "Potential AWS access key"),
-            (r'(?i)(private[_-]?key)', "Potential private key reference"),
+            (r"(?i)(aws[_-]?access[_-]?key)", "Potential AWS access key"),
+            (r"(?i)(private[_-]?key)", "Potential private key reference"),
         ]
 
         # Get all Python files

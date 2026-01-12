@@ -1,6 +1,5 @@
 """Unit tests for user repository."""
 
-
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 

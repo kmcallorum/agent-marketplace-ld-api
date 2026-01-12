@@ -71,14 +71,10 @@ class AnalyticsService:
         # Agent stats
         total_agents_stmt = select(func.count()).select_from(Agent)
         validated_agents_stmt = (
-            select(func.count())
-            .select_from(Agent)
-            .where(Agent.is_validated.is_(True))
+            select(func.count()).select_from(Agent).where(Agent.is_validated.is_(True))
         )
         pending_agents_stmt = (
-            select(func.count())
-            .select_from(Agent)
-            .where(Agent.is_validated.is_(False))
+            select(func.count()).select_from(Agent).where(Agent.is_validated.is_(False))
         )
 
         total_agents = (await self.db.execute(total_agents_stmt)).scalar_one()
@@ -89,9 +85,7 @@ class AnalyticsService:
         total_users_stmt = select(func.count()).select_from(User)
         thirty_days_ago = datetime.utcnow() - timedelta(days=30)
         active_users_stmt = (
-            select(func.count())
-            .select_from(User)
-            .where(User.updated_at >= thirty_days_ago)
+            select(func.count()).select_from(User).where(User.updated_at >= thirty_days_ago)
         )
 
         total_users = (await self.db.execute(total_users_stmt)).scalar_one()
@@ -103,9 +97,8 @@ class AnalyticsService:
 
         # For last 30 days, we estimate based on recent agents
         # In a real system, this would come from analytics_events table
-        recent_downloads_stmt = (
-            select(func.coalesce(func.sum(Agent.downloads), 0))
-            .where(Agent.created_at >= thirty_days_ago)
+        recent_downloads_stmt = select(func.coalesce(func.sum(Agent.downloads), 0)).where(
+            Agent.created_at >= thirty_days_ago
         )
         recent_downloads = (await self.db.execute(recent_downloads_stmt)).scalar_one()
 
@@ -182,7 +175,9 @@ class AnalyticsService:
 
         for agent in agents:
             raw_score = agent.downloads + agent.stars * 2
-            trend_score = Decimal(str(round(raw_score / max_score, 2))) if max_score > 0 else Decimal("0.00")
+            trend_score = (
+                Decimal(str(round(raw_score / max_score, 2))) if max_score > 0 else Decimal("0.00")
+            )
 
             # Calculate hypothetical downloads change
             # In production, this would compare current period to previous

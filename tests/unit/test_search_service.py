@@ -105,7 +105,9 @@ class TestSearchAgents:
         result = await service.search_agents("Code")
 
         assert result.total >= 2  # Code Review Agent and Code Formatter
-        assert all("code" in a.name.lower() or "code" in a.description.lower() for a in result.items)
+        assert all(
+            "code" in a.name.lower() or "code" in a.description.lower() for a in result.items
+        )
 
     @pytest.mark.asyncio
     async def test_search_agents_by_description(

@@ -122,7 +122,9 @@ class TestAgentRepository:
 
     @pytest.mark.asyncio
     async def test_find_by_slug(
-        self, db_session: AsyncSession, agent: Agent  # noqa: ARG002
+        self,
+        db_session: AsyncSession,
+        agent: Agent,  # noqa: ARG002
     ) -> None:
         """Test finding agent by slug."""
         repo = AgentRepository(db_session)
@@ -132,9 +134,7 @@ class TestAgentRepository:
         assert result.slug == "test-agent"
 
     @pytest.mark.asyncio
-    async def test_find_by_slug_returns_none(
-        self, db_session: AsyncSession
-    ) -> None:
+    async def test_find_by_slug_returns_none(self, db_session: AsyncSession) -> None:
         """Test finding non-existent slug returns None."""
         repo = AgentRepository(db_session)
         result = await repo.find_by_slug("nonexistent")
@@ -154,7 +154,9 @@ class TestAgentRepository:
 
     @pytest.mark.asyncio
     async def test_list_public(
-        self, db_session: AsyncSession, agent: Agent  # noqa: ARG002
+        self,
+        db_session: AsyncSession,
+        agent: Agent,  # noqa: ARG002
     ) -> None:
         """Test listing public agents."""
         repo = AgentRepository(db_session)
@@ -163,9 +165,7 @@ class TestAgentRepository:
         assert len(result) >= 1
 
     @pytest.mark.asyncio
-    async def test_list_public_with_sorting(
-        self, db_session: AsyncSession, author: User
-    ) -> None:
+    async def test_list_public_with_sorting(self, db_session: AsyncSession, author: User) -> None:
         """Test listing public agents with different sort options."""
         # Create agents with different stats
         for i, downloads in enumerate([10, 50, 30]):
@@ -187,7 +187,9 @@ class TestAgentRepository:
 
     @pytest.mark.asyncio
     async def test_count_public(
-        self, db_session: AsyncSession, agent: Agent  # noqa: ARG002
+        self,
+        db_session: AsyncSession,
+        agent: Agent,  # noqa: ARG002
     ) -> None:
         """Test counting public agents."""
         repo = AgentRepository(db_session)
@@ -196,9 +198,7 @@ class TestAgentRepository:
         assert count >= 1
 
     @pytest.mark.asyncio
-    async def test_list_public_with_category(
-        self, db_session: AsyncSession, author: User
-    ) -> None:
+    async def test_list_public_with_category(self, db_session: AsyncSession, author: User) -> None:
         """Test listing public agents with category filter."""
         from agent_marketplace_api.models import Category
 
@@ -234,9 +234,7 @@ class TestAgentRepository:
         assert len(result) >= 1
 
     @pytest.mark.asyncio
-    async def test_count_public_with_category(
-        self, db_session: AsyncSession, author: User
-    ) -> None:
+    async def test_count_public_with_category(self, db_session: AsyncSession, author: User) -> None:
         """Test counting public agents with category filter."""
         from agent_marketplace_api.models import Category
 
@@ -273,7 +271,9 @@ class TestAgentRepository:
 
     @pytest.mark.asyncio
     async def test_slug_exists_true(
-        self, db_session: AsyncSession, agent: Agent  # noqa: ARG002
+        self,
+        db_session: AsyncSession,
+        agent: Agent,  # noqa: ARG002
     ) -> None:
         """Test slug_exists returns True for existing slug."""
         repo = AgentRepository(db_session)
@@ -282,9 +282,7 @@ class TestAgentRepository:
         assert exists is True
 
     @pytest.mark.asyncio
-    async def test_slug_exists_false(
-        self, db_session: AsyncSession
-    ) -> None:
+    async def test_slug_exists_false(self, db_session: AsyncSession) -> None:
         """Test slug_exists returns False for non-existent slug."""
         repo = AgentRepository(db_session)
         exists = await repo.slug_exists("nonexistent")
@@ -292,9 +290,7 @@ class TestAgentRepository:
         assert exists is False
 
     @pytest.mark.asyncio
-    async def test_increment_downloads(
-        self, db_session: AsyncSession, agent: Agent
-    ) -> None:
+    async def test_increment_downloads(self, db_session: AsyncSession, agent: Agent) -> None:
         """Test incrementing download counter."""
         repo = AgentRepository(db_session)
         await repo.increment_downloads(agent.id)
@@ -304,17 +300,13 @@ class TestAgentRepository:
         assert updated.downloads == 1
 
     @pytest.mark.asyncio
-    async def test_increment_downloads_missing_agent(
-        self, db_session: AsyncSession
-    ) -> None:
+    async def test_increment_downloads_missing_agent(self, db_session: AsyncSession) -> None:
         """Test incrementing downloads for non-existent agent does nothing."""
         repo = AgentRepository(db_session)
         await repo.increment_downloads(99999)  # Should not raise
 
     @pytest.mark.asyncio
-    async def test_increment_stars(
-        self, db_session: AsyncSession, agent: Agent
-    ) -> None:
+    async def test_increment_stars(self, db_session: AsyncSession, agent: Agent) -> None:
         """Test incrementing star counter."""
         repo = AgentRepository(db_session)
         await repo.increment_stars(agent.id)
@@ -324,17 +316,13 @@ class TestAgentRepository:
         assert updated.stars == 1
 
     @pytest.mark.asyncio
-    async def test_increment_stars_missing_agent(
-        self, db_session: AsyncSession
-    ) -> None:
+    async def test_increment_stars_missing_agent(self, db_session: AsyncSession) -> None:
         """Test incrementing stars for non-existent agent does nothing."""
         repo = AgentRepository(db_session)
         await repo.increment_stars(99999)  # Should not raise
 
     @pytest.mark.asyncio
-    async def test_decrement_stars(
-        self, db_session: AsyncSession, author: User
-    ) -> None:
+    async def test_decrement_stars(self, db_session: AsyncSession, author: User) -> None:
         """Test decrementing star counter."""
         agent = Agent(
             name="Test",
@@ -355,9 +343,7 @@ class TestAgentRepository:
         assert updated.stars == 4
 
     @pytest.mark.asyncio
-    async def test_decrement_stars_at_zero(
-        self, db_session: AsyncSession, agent: Agent
-    ) -> None:
+    async def test_decrement_stars_at_zero(self, db_session: AsyncSession, agent: Agent) -> None:
         """Test decrementing stars when already at zero."""
         repo = AgentRepository(db_session)
         await repo.decrement_stars(agent.id)
@@ -367,9 +353,7 @@ class TestAgentRepository:
         assert updated.stars == 0  # Should not go negative
 
     @pytest.mark.asyncio
-    async def test_decrement_stars_missing_agent(
-        self, db_session: AsyncSession
-    ) -> None:
+    async def test_decrement_stars_missing_agent(self, db_session: AsyncSession) -> None:
         """Test decrementing stars for non-existent agent does nothing."""
         repo = AgentRepository(db_session)
         await repo.decrement_stars(99999)  # Should not raise

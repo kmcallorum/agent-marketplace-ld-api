@@ -142,10 +142,10 @@ def hello(name: str) -> str:
         with tempfile.TemporaryDirectory() as temp_dir:
             # Create a file with a hardcoded secret
             code_file = Path(temp_dir) / "secrets.py"
-            code_file.write_text('''
+            code_file.write_text("""
 API_KEY = "sk-1234567890abcdef1234567890abcdef"
 password = "mysecretpassword123"
-''')
+""")
             result = await scanner.scan(Path(temp_dir))
 
         # Should detect the hardcoded secrets
@@ -160,10 +160,10 @@ password = "mysecretpassword123"
 
         with tempfile.TemporaryDirectory() as temp_dir:
             code_file = Path(temp_dir) / "commented.py"
-            code_file.write_text('''
+            code_file.write_text("""
 # api_key = "sk-1234567890abcdef"
 # This is just a comment about passwords
-''')
+""")
             result = await scanner.scan(Path(temp_dir))
 
         # Should not flag comments

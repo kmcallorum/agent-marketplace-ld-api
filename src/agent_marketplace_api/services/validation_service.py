@@ -56,21 +56,29 @@ class ValidationResult:
             "security": {
                 "passed": self.security_result.passed if self.security_result else None,
                 "issues_count": len(self.security_result.issues) if self.security_result else 0,
-                "critical_count": self.security_result.critical_count if self.security_result else 0,
+                "critical_count": self.security_result.critical_count
+                if self.security_result
+                else 0,
                 "high_count": self.security_result.high_count if self.security_result else 0,
-            } if self.security_result else None,
+            }
+            if self.security_result
+            else None,
             "quality": {
                 "passed": self.quality_result.passed if self.quality_result else None,
                 "lint_score": self.quality_result.lint_score if self.quality_result else 0,
                 "issues_count": len(self.quality_result.issues) if self.quality_result else 0,
-            } if self.quality_result else None,
+            }
+            if self.quality_result
+            else None,
             "tests": {
                 "passed": self.test_result.passed if self.test_result else None,
                 "total": self.test_result.total_tests if self.test_result else 0,
                 "passed_count": self.test_result.passed_tests if self.test_result else 0,
                 "failed_count": self.test_result.failed_tests if self.test_result else 0,
                 "coverage": self.test_result.coverage_percent if self.test_result else None,
-            } if self.test_result else None,
+            }
+            if self.test_result
+            else None,
         }
 
 

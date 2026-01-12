@@ -53,9 +53,7 @@ def validate_agent_task(
     """
     try:
         # Run async validation in sync context
-        result = asyncio.run(
-            _run_validation(agent_version_id, storage_key)
-        )
+        result = asyncio.run(_run_validation(agent_version_id, storage_key))
         return result
     except MaxRetriesExceededError:
         # Update status to failed after max retries
@@ -185,6 +183,7 @@ async def _update_validation_results(
             )
             if result.quality_result:
                 from decimal import Decimal
+
                 version.quality_score = Decimal(str(result.quality_result.lint_score / 100.0))
 
             # Also update the parent agent's is_validated flag

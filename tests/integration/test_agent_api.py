@@ -57,7 +57,9 @@ class TestListAgents:
 
     @pytest.mark.asyncio
     async def test_list_agents_with_data(
-        self, client: AsyncClient, agent_with_version: Agent  # noqa: ARG002
+        self,
+        client: AsyncClient,
+        agent_with_version: Agent,  # noqa: ARG002
     ) -> None:
         """Test listing agents returns data."""
         response = await client.get("/api/v1/agents")
@@ -154,7 +156,9 @@ class TestGetAgent:
 
     @pytest.mark.asyncio
     async def test_get_agent_success(
-        self, client: AsyncClient, agent_with_version: Agent  # noqa: ARG002
+        self,
+        client: AsyncClient,
+        agent_with_version: Agent,  # noqa: ARG002
     ) -> None:
         """Test getting agent by slug."""
         response = await client.get("/api/v1/agents/test-agent")
@@ -177,7 +181,9 @@ class TestGetAgent:
 
     @pytest.mark.asyncio
     async def test_get_agent_includes_versions(
-        self, client: AsyncClient, agent_with_version: Agent  # noqa: ARG002
+        self,
+        client: AsyncClient,
+        agent_with_version: Agent,  # noqa: ARG002
     ) -> None:
         """Test agent response includes version history."""
         response = await client.get("/api/v1/agents/test-agent")
@@ -189,7 +195,9 @@ class TestGetAgent:
 
     @pytest.mark.asyncio
     async def test_get_agent_includes_author(
-        self, client: AsyncClient, agent_with_version: Agent  # noqa: ARG002
+        self,
+        client: AsyncClient,
+        agent_with_version: Agent,  # noqa: ARG002
     ) -> None:
         """Test agent response includes author info."""
         response = await client.get("/api/v1/agents/test-agent")

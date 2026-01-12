@@ -165,10 +165,12 @@ class TestRunner:
 
         # Add coverage if threshold specified
         if self.min_coverage is not None:
-            cmd.extend([
-                f"--cov={code_path}",
-                "--cov-report=term-missing",
-            ])
+            cmd.extend(
+                [
+                    f"--cov={code_path}",
+                    "--cov-report=term-missing",
+                ]
+            )
 
         try:
             result = await asyncio.to_thread(

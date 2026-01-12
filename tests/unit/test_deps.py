@@ -55,9 +55,7 @@ class TestGetCurrentUser:
         sample_user: User,
     ) -> None:
         """Test that generic exceptions are caught and converted to HTTPException."""
-        token = create_access_token(
-            {"sub": str(sample_user.id), "username": sample_user.username}
-        )
+        token = create_access_token({"sub": str(sample_user.id), "username": sample_user.username})
 
         # Create a mock service that raises an unexpected exception
         mock_service = AsyncMock(spec=UserService)
@@ -109,9 +107,7 @@ class TestGetOptionalUser:
         sample_user: User,
     ) -> None:
         """Test that valid token returns user."""
-        token = create_access_token(
-            {"sub": str(sample_user.id), "username": sample_user.username}
-        )
+        token = create_access_token({"sub": str(sample_user.id), "username": sample_user.username})
 
         mock_service = AsyncMock(spec=UserService)
         mock_service.get_user_by_id.return_value = sample_user

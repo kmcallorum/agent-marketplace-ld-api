@@ -50,9 +50,7 @@ class AgentRepository(BaseRepository[Agent]):
         query = select(Agent).where(Agent.is_public.is_(True))
 
         if category:
-            query = query.join(Agent.categories).where(
-                Agent.categories.any(slug=category)
-            )
+            query = query.join(Agent.categories).where(Agent.categories.any(slug=category))
 
         # Sorting
         sort_column = getattr(Agent, sort_by, Agent.created_at)
@@ -71,9 +69,7 @@ class AgentRepository(BaseRepository[Agent]):
         query = select(func.count()).select_from(Agent).where(Agent.is_public.is_(True))
 
         if category:
-            query = query.join(Agent.categories).where(
-                Agent.categories.any(slug=category)
-            )
+            query = query.join(Agent.categories).where(Agent.categories.any(slug=category))
 
         result = await self.db.execute(query)
         return result.scalar_one()

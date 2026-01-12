@@ -324,7 +324,12 @@ class TestQualityChecker:
 
         # Create 10 issues
         ruff_output = [
-            {"code": f"E{i:03d}", "message": f"Issue {i}", "filename": "test.py", "location": {"row": i}}
+            {
+                "code": f"E{i:03d}",
+                "message": f"Issue {i}",
+                "filename": "test.py",
+                "location": {"row": i},
+            }
             for i in range(10)
         ]
 
@@ -352,7 +357,12 @@ class TestQualityChecker:
 
         # Create 30 issues (would be -50 without floor)
         ruff_output = [
-            {"code": f"E{i:03d}", "message": f"Issue {i}", "filename": "test.py", "location": {"row": i}}
+            {
+                "code": f"E{i:03d}",
+                "message": f"Issue {i}",
+                "filename": "test.py",
+                "location": {"row": i},
+            }
             for i in range(30)
         ]
 

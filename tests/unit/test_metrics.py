@@ -367,9 +367,7 @@ class TestMetricsEndpointIntegration:
 
         from agent_marketplace_api.main import app
 
-        async with AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
-        ) as client:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.get("/metrics")
 
             assert response.status_code == 200

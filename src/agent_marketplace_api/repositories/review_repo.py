@@ -1,6 +1,5 @@
 """Review repository for data access."""
 
-
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -18,9 +17,7 @@ class ReviewRepository(BaseRepository[Review]):
         """Initialize repository with database session."""
         super().__init__(db, Review)
 
-    async def get_by_agent_and_user(
-        self, agent_id: int, user_id: int
-    ) -> Review | None:
+    async def get_by_agent_and_user(self, agent_id: int, user_id: int) -> Review | None:
         """Get a review by agent and user (unique constraint)."""
         result = await self.db.execute(
             select(Review)
@@ -48,11 +45,7 @@ class ReviewRepository(BaseRepository[Review]):
         Returns:
             List of reviews
         """
-        query = (
-            select(Review)
-            .where(Review.agent_id == agent_id)
-            .options(selectinload(Review.user))
-        )
+        query = select(Review).where(Review.agent_id == agent_id).options(selectinload(Review.user))
 
         # Apply sorting
         if sort == "recent":
@@ -91,9 +84,7 @@ class ReviewRepository(BaseRepository[Review]):
     async def get_with_user(self, review_id: int) -> Review | None:
         """Get review with user relationship loaded."""
         result = await self.db.execute(
-            select(Review)
-            .where(Review.id == review_id)
-            .options(selectinload(Review.user))
+            select(Review).where(Review.id == review_id).options(selectinload(Review.user))
         )
         return result.scalar_one_or_none()
 
@@ -124,9 +115,7 @@ class StarRepository:
         if await self.is_starred(user_id, agent_id):
             return False
 
-        await self.db.execute(
-            agent_stars.insert().values(user_id=user_id, agent_id=agent_id)
-        )
+        await self.db.execute(agent_stars.insert().values(user_id=user_id, agent_id=agent_id))
         await self.db.flush()
         return True
 
@@ -155,9 +144,7 @@ class StarRepository:
     async def count_stars(self, agent_id: int) -> int:
         """Count stars for an agent."""
         result = await self.db.execute(
-            select(func.count())
-            .select_from(agent_stars)
-            .where(agent_stars.c.agent_id == agent_id)
+            select(func.count()).select_from(agent_stars).where(agent_stars.c.agent_id == agent_id)
         )
         return result.scalar_one()
 
@@ -178,9 +165,7 @@ class StarRepository:
     async def update_agent_star_count(self, agent_id: int) -> None:
         """Update the star count on an agent."""
         count = await self.count_stars(agent_id)
-        result = await self.db.execute(
-            select(Agent).where(Agent.id == agent_id)
-        )
+        result = await self.db.execute(select(Agent).where(Agent.id == agent_id))
         agent = result.scalar_one_or_none()
         if agent:
             agent.stars = count

@@ -73,9 +73,7 @@ class TestCreateAgentWithUpload:
         mock_upload_result.key = "agents/testuser/New Agent-1.0.0.zip"
         mock_upload_result.size_bytes = 100
 
-        with patch(
-            "agent_marketplace_api.api.v1.agents.get_storage_service"
-        ) as mock_get_storage:
+        with patch("agent_marketplace_api.api.v1.agents.get_storage_service") as mock_get_storage:
             mock_storage = AsyncMock()
             mock_storage.upload_file.return_value = mock_upload_result
             mock_get_storage.return_value = mock_storage
@@ -161,9 +159,7 @@ class TestCreateAgentWithUpload:
 
         from agent_marketplace_api.storage import UploadError
 
-        with patch(
-            "agent_marketplace_api.api.v1.agents.get_storage_service"
-        ) as mock_get_storage:
+        with patch("agent_marketplace_api.api.v1.agents.get_storage_service") as mock_get_storage:
             mock_storage = AsyncMock()
             mock_storage.upload_file.side_effect = UploadError("Storage error")
             mock_get_storage.return_value = mock_storage
@@ -226,9 +222,7 @@ class TestDownloadLatest:
         sample_agent: Agent,
     ) -> None:
         """Test downloading latest version redirects to presigned URL."""
-        with patch(
-            "agent_marketplace_api.api.v1.upload.get_storage_service"
-        ) as mock_get_storage:
+        with patch("agent_marketplace_api.api.v1.upload.get_storage_service") as mock_get_storage:
             mock_storage = AsyncMock()
             mock_storage.generate_presigned_download_url.return_value = (
                 "https://s3.example.com/presigned"
@@ -291,12 +285,10 @@ class TestDownloadLatest:
         sample_agent: Agent,
     ) -> None:
         """Test downloading when file missing from storage returns 404."""
-        with patch(
-            "agent_marketplace_api.api.v1.upload.get_storage_service"
-        ) as mock_get_storage:
+        with patch("agent_marketplace_api.api.v1.upload.get_storage_service") as mock_get_storage:
             mock_storage = AsyncMock()
-            mock_storage.generate_presigned_download_url.side_effect = (
-                StorageFileNotFoundError("File not found")
+            mock_storage.generate_presigned_download_url.side_effect = StorageFileNotFoundError(
+                "File not found"
             )
             mock_get_storage.return_value = mock_storage
 
@@ -319,9 +311,7 @@ class TestDownloadVersion:
         sample_agent: Agent,
     ) -> None:
         """Test downloading specific version redirects to presigned URL."""
-        with patch(
-            "agent_marketplace_api.api.v1.upload.get_storage_service"
-        ) as mock_get_storage:
+        with patch("agent_marketplace_api.api.v1.upload.get_storage_service") as mock_get_storage:
             mock_storage = AsyncMock()
             mock_storage.generate_presigned_download_url.return_value = (
                 "https://s3.example.com/v1.0.0"
@@ -372,12 +362,10 @@ class TestDownloadVersion:
         sample_agent: Agent,
     ) -> None:
         """Test downloading specific version when file missing from storage returns 404."""
-        with patch(
-            "agent_marketplace_api.api.v1.upload.get_storage_service"
-        ) as mock_get_storage:
+        with patch("agent_marketplace_api.api.v1.upload.get_storage_service") as mock_get_storage:
             mock_storage = AsyncMock()
-            mock_storage.generate_presigned_download_url.side_effect = (
-                StorageFileNotFoundError("File not found")
+            mock_storage.generate_presigned_download_url.side_effect = StorageFileNotFoundError(
+                "File not found"
             )
             mock_get_storage.return_value = mock_storage
 
@@ -405,9 +393,7 @@ class TestPresignedUploadUrl:
             {"sub": str(sample_user.id), "username": sample_user.username}
         )
 
-        with patch(
-            "agent_marketplace_api.api.v1.upload.get_storage_service"
-        ) as mock_get_storage:
+        with patch("agent_marketplace_api.api.v1.upload.get_storage_service") as mock_get_storage:
             mock_storage = AsyncMock()
             mock_storage.generate_presigned_upload_url.return_value = (
                 "https://s3.example.com/upload"

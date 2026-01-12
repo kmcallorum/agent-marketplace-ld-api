@@ -38,9 +38,7 @@ async def list_reviews(
     Sort options: helpful (default), recent, rating
     """
     try:
-        result = await service.get_reviews(
-            slug, limit=limit, offset=offset, sort=sort
-        )
+        result = await service.get_reviews(slug, limit=limit, offset=offset, sort=sort)
     except AgentNotFoundError as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

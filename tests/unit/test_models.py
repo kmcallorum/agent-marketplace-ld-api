@@ -97,7 +97,14 @@ class TestAgentModel:
 
     def test_agent_repr(self) -> None:
         """Test Agent string representation."""
-        agent = Agent(id=1, slug="test-agent", name="Test", description="Test", current_version="1.0.0", author_id=1)
+        agent = Agent(
+            id=1,
+            slug="test-agent",
+            name="Test",
+            description="Test",
+            current_version="1.0.0",
+            author_id=1,
+        )
         assert repr(agent) == "<Agent(id=1, slug='test-agent')>"
 
     @pytest.mark.asyncio
@@ -275,9 +282,7 @@ class TestAssociationTables:
         await db_session.flush()
 
         # Star the agent via association table
-        await db_session.execute(
-            insert(agent_stars).values(user_id=user.id, agent_id=agent.id)
-        )
+        await db_session.execute(insert(agent_stars).values(user_id=user.id, agent_id=agent.id))
         await db_session.commit()
 
         # Verify star exists in association table

@@ -78,9 +78,7 @@ class SearchService:
 
         # Apply category filter
         if category:
-            stmt = stmt.join(Agent.categories).where(
-                Agent.categories.any(slug=category)
-            )
+            stmt = stmt.join(Agent.categories).where(Agent.categories.any(slug=category))
 
         # Apply rating filter
         if min_rating is not None:

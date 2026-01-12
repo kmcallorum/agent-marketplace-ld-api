@@ -218,9 +218,7 @@ class TestRefreshEndpoint:
         db_session: AsyncSession,  # noqa: ARG002
     ) -> None:
         """Test refresh endpoint rejects token for deleted user."""
-        refresh_token = create_refresh_token(
-            {"sub": "99999", "username": "deleteduser"}
-        )
+        refresh_token = create_refresh_token({"sub": "99999", "username": "deleteduser"})
 
         response = await client.post(
             "/api/v1/auth/refresh",
@@ -284,9 +282,7 @@ class TestProtectedAgentsEndpoint:
         mock_upload_result.key = "agents/testuser/Test Agent-1.0.0.zip"
         mock_upload_result.size_bytes = 100
 
-        with patch(
-            "agent_marketplace_api.api.v1.agents.get_storage_service"
-        ) as mock_get_storage:
+        with patch("agent_marketplace_api.api.v1.agents.get_storage_service") as mock_get_storage:
             mock_storage = AsyncMock()
             mock_storage.upload_file.return_value = mock_upload_result
             mock_get_storage.return_value = mock_storage
@@ -434,9 +430,7 @@ class TestProtectedAgentsEndpoint:
 
         zip_content = b"PK\x03\x04" + b"\x00" * 96
 
-        with patch(
-            "agent_marketplace_api.api.v1.agents.get_storage_service"
-        ) as mock_get_storage:
+        with patch("agent_marketplace_api.api.v1.agents.get_storage_service") as mock_get_storage:
             mock_storage = AsyncMock()
             mock_storage.upload_file.return_value = mock_upload_result
             mock_get_storage.return_value = mock_storage

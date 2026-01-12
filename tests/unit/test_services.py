@@ -100,9 +100,7 @@ class TestAgentService:
         )
 
     @pytest.mark.asyncio
-    async def test_get_agent_found(
-        self, mock_repo: MagicMock, mock_agent: Agent
-    ) -> None:
+    async def test_get_agent_found(self, mock_repo: MagicMock, mock_agent: Agent) -> None:
         """Test getting agent by slug when it exists."""
         mock_repo.find_by_slug = AsyncMock(return_value=mock_agent)
 
@@ -122,9 +120,7 @@ class TestAgentService:
             await service.get_agent("nonexistent")
 
     @pytest.mark.asyncio
-    async def test_get_agent_by_id_found(
-        self, mock_repo: MagicMock, mock_agent: Agent
-    ) -> None:
+    async def test_get_agent_by_id_found(self, mock_repo: MagicMock, mock_agent: Agent) -> None:
         """Test getting agent by ID when it exists."""
         mock_repo.get = AsyncMock(return_value=mock_agent)
 
@@ -144,14 +140,10 @@ class TestAgentService:
             await service.get_agent_by_id(99999)
 
     @pytest.mark.asyncio
-    async def test_create_agent(
-        self, mock_repo: MagicMock, mock_user: User
-    ) -> None:
+    async def test_create_agent(self, mock_repo: MagicMock, mock_user: User) -> None:
         """Test creating a new agent."""
         mock_repo.slug_exists = AsyncMock(return_value=False)
-        mock_repo.create = AsyncMock(
-            side_effect=lambda a: setattr(a, "id", 1) or a
-        )
+        mock_repo.create = AsyncMock(side_effect=lambda a: setattr(a, "id", 1) or a)
         mock_repo.db.add = MagicMock()
         mock_repo.db.flush = AsyncMock()
 
@@ -176,9 +168,7 @@ class TestAgentService:
         """Test creating agent generates unique slug when duplicate exists."""
         # First call returns True (slug exists), second returns False
         mock_repo.slug_exists = AsyncMock(side_effect=[True, False])
-        mock_repo.create = AsyncMock(
-            side_effect=lambda a: setattr(a, "id", 1) or a
-        )
+        mock_repo.create = AsyncMock(side_effect=lambda a: setattr(a, "id", 1) or a)
         mock_repo.db.add = MagicMock()
         mock_repo.db.flush = AsyncMock()
 
@@ -210,9 +200,7 @@ class TestAgentService:
         assert result.description == "Updated description"
 
     @pytest.mark.asyncio
-    async def test_update_agent_not_owner(
-        self, mock_repo: MagicMock, mock_agent: Agent
-    ) -> None:
+    async def test_update_agent_not_owner(self, mock_repo: MagicMock, mock_agent: Agent) -> None:
         """Test updating agent fails when user is not owner."""
         mock_repo.find_by_slug = AsyncMock(return_value=mock_agent)
 
@@ -254,9 +242,7 @@ class TestAgentService:
         mock_repo.delete.assert_called_once_with(mock_agent)
 
     @pytest.mark.asyncio
-    async def test_delete_agent_not_owner(
-        self, mock_repo: MagicMock, mock_agent: Agent
-    ) -> None:
+    async def test_delete_agent_not_owner(self, mock_repo: MagicMock, mock_agent: Agent) -> None:
         """Test deleting agent fails when user is not owner."""
         mock_repo.find_by_slug = AsyncMock(return_value=mock_agent)
 
@@ -268,9 +254,7 @@ class TestAgentService:
             await service.delete_agent("test-agent", other_user)
 
     @pytest.mark.asyncio
-    async def test_get_user_agents(
-        self, mock_repo: MagicMock, mock_agent: Agent
-    ) -> None:
+    async def test_get_user_agents(self, mock_repo: MagicMock, mock_agent: Agent) -> None:
         """Test getting all agents by a user."""
         mock_repo.find_by_author = AsyncMock(return_value=[mock_agent])
 
