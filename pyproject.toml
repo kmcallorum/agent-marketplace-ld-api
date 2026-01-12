@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "agent-marketplace-api"
+name = "agent-marketplace-ld-api"
 version = "0.1.0"
 description = "FastAPI backend for Agent Marketplace - central registry for AI agents"
 readme = "README.md"
