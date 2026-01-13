@@ -54,6 +54,8 @@ services:
     container_name: agent-marketplace-api
     ports:
       - "8000:8000"
+    env_file:
+      - .env
     environment:
       DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/agent_marketplace
       REDIS_URL: redis://redis:6379/0
