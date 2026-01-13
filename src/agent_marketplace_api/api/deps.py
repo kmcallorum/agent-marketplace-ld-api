@@ -4,7 +4,7 @@ from collections.abc import AsyncGenerator
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from agent_marketplace_api.database import get_db
@@ -20,7 +20,7 @@ from agent_marketplace_api.services import AgentService, ReviewService, UserServ
 from agent_marketplace_api.services.analytics_service import AnalyticsService
 from agent_marketplace_api.services.search_service import SearchService
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/github", auto_error=False)
+security_scheme = HTTPBearer(auto_error=False, description="JWT token from GitHub OAuth")
 
 
 async def get_agent_repo(
@@ -75,11 +75,11 @@ async def get_review_service(
 
 
 async def get_current_user(
-    token: Annotated[str | None, Depends(oauth2_scheme)],
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(security_scheme)],
     user_service: Annotated[UserService, Depends(get_user_service)],
 ) -> User:
     """Get current authenticated user from JWT token."""
-    if not token:
+    if not credentials:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Not authenticated",
@@ -87,6 +87,7 @@ async def get_current_user(
         )
 
     try:
+        token = credentials.credentials
         payload = verify_token(token)
         user_id = payload.get("sub")
         if not user_id:
@@ -118,14 +119,15 @@ async def get_current_user(
 
 
 async def get_optional_user(
-    token: Annotated[str | None, Depends(oauth2_scheme)],
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(security_scheme)],
     user_service: Annotated[UserService, Depends(get_user_service)],
 ) -> User | None:
     """Get current user if authenticated, None otherwise."""
-    if not token:
+    if not credentials:
         return None
 
     try:
+        token = credentials.credentials
         payload = verify_token(token)
         user_id = payload.get("sub")
         if not user_id:
