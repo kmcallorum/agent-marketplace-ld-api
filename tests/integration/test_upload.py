@@ -221,21 +221,39 @@ class TestDownloadLatest:
         client: AsyncClient,
         sample_agent: Agent,
     ) -> None:
-        """Test downloading latest version redirects to presigned URL."""
-        with patch("agent_marketplace_api.api.v1.upload.get_storage_service") as mock_get_storage:
+        """Test downloading latest version streams file content."""
+        with (
+            patch("agent_marketplace_api.api.v1.upload.get_storage_service") as mock_get_storage,
+            patch("agent_marketplace_api.api.deps.AgentService") as mock_agent_service_class,
+        ):
+            # Mock storage to return file content
             mock_storage = AsyncMock()
-            mock_storage.generate_presigned_download_url.return_value = (
-                "https://s3.example.com/presigned"
-            )
+            mock_storage.download_file.return_value = b"fake zip content"
             mock_get_storage.return_value = mock_storage
+
+            # Create mock agent service that returns a proper agent-like object
+            mock_version = MagicMock()
+            mock_version.version = "1.0.0"
+            mock_version.storage_key = "test-key"
+
+            mock_agent = MagicMock()
+            mock_agent.slug = sample_agent.slug
+            mock_agent.versions = [mock_version]
+            mock_agent.downloads = 0
+
+            mock_service = AsyncMock()
+            mock_service.get_agent.return_value = mock_agent
+            mock_service.repo = AsyncMock()
+            mock_agent_service_class.return_value = mock_service
 
             response = await client.get(
                 f"/api/v1/agents/{sample_agent.slug}/download",
-                follow_redirects=False,
             )
 
-        assert response.status_code == 302
-        assert response.headers["location"] == "https://s3.example.com/presigned"
+        assert response.status_code == 200
+        assert response.content == b"fake zip content"
+        assert response.headers["content-type"] == "application/zip"
+        assert "attachment" in response.headers["content-disposition"]
 
     @pytest.mark.asyncio
     async def test_download_latest_agent_not_found(
@@ -285,16 +303,29 @@ class TestDownloadLatest:
         sample_agent: Agent,
     ) -> None:
         """Test downloading when file missing from storage returns 404."""
-        with patch("agent_marketplace_api.api.v1.upload.get_storage_service") as mock_get_storage:
+        with (
+            patch("agent_marketplace_api.api.v1.upload.get_storage_service") as mock_get_storage,
+            patch("agent_marketplace_api.api.deps.AgentService") as mock_agent_service_class,
+        ):
             mock_storage = AsyncMock()
-            mock_storage.generate_presigned_download_url.side_effect = StorageFileNotFoundError(
-                "File not found"
-            )
+            mock_storage.download_file.side_effect = StorageFileNotFoundError("File not found")
             mock_get_storage.return_value = mock_storage
+
+            # Create mock agent service
+            mock_version = MagicMock()
+            mock_version.version = "1.0.0"
+            mock_version.storage_key = "test-key"
+
+            mock_agent = MagicMock()
+            mock_agent.slug = sample_agent.slug
+            mock_agent.versions = [mock_version]
+
+            mock_service = AsyncMock()
+            mock_service.get_agent.return_value = mock_agent
+            mock_agent_service_class.return_value = mock_service
 
             response = await client.get(
                 f"/api/v1/agents/{sample_agent.slug}/download",
-                follow_redirects=False,
             )
 
         assert response.status_code == 404
@@ -310,21 +341,38 @@ class TestDownloadVersion:
         client: AsyncClient,
         sample_agent: Agent,
     ) -> None:
-        """Test downloading specific version redirects to presigned URL."""
-        with patch("agent_marketplace_api.api.v1.upload.get_storage_service") as mock_get_storage:
+        """Test downloading specific version streams file content."""
+        with (
+            patch("agent_marketplace_api.api.v1.upload.get_storage_service") as mock_get_storage,
+            patch("agent_marketplace_api.api.deps.AgentService") as mock_agent_service_class,
+        ):
             mock_storage = AsyncMock()
-            mock_storage.generate_presigned_download_url.return_value = (
-                "https://s3.example.com/v1.0.0"
-            )
+            mock_storage.download_file.return_value = b"fake zip v1.0.0"
             mock_get_storage.return_value = mock_storage
+
+            # Create mock agent service
+            mock_version = MagicMock()
+            mock_version.version = "1.0.0"
+            mock_version.storage_key = "test-key"
+
+            mock_agent = MagicMock()
+            mock_agent.slug = sample_agent.slug
+            mock_agent.versions = [mock_version]
+            mock_agent.downloads = 0
+
+            mock_service = AsyncMock()
+            mock_service.get_agent.return_value = mock_agent
+            mock_service.repo = AsyncMock()
+            mock_agent_service_class.return_value = mock_service
 
             response = await client.get(
                 f"/api/v1/agents/{sample_agent.slug}/download/1.0.0",
-                follow_redirects=False,
             )
 
-        assert response.status_code == 302
-        assert response.headers["location"] == "https://s3.example.com/v1.0.0"
+        assert response.status_code == 200
+        assert response.content == b"fake zip v1.0.0"
+        assert response.headers["content-type"] == "application/zip"
+        assert "attachment" in response.headers["content-disposition"]
 
     @pytest.mark.asyncio
     async def test_download_version_not_found(
@@ -362,16 +410,29 @@ class TestDownloadVersion:
         sample_agent: Agent,
     ) -> None:
         """Test downloading specific version when file missing from storage returns 404."""
-        with patch("agent_marketplace_api.api.v1.upload.get_storage_service") as mock_get_storage:
+        with (
+            patch("agent_marketplace_api.api.v1.upload.get_storage_service") as mock_get_storage,
+            patch("agent_marketplace_api.api.deps.AgentService") as mock_agent_service_class,
+        ):
             mock_storage = AsyncMock()
-            mock_storage.generate_presigned_download_url.side_effect = StorageFileNotFoundError(
-                "File not found"
-            )
+            mock_storage.download_file.side_effect = StorageFileNotFoundError("File not found")
             mock_get_storage.return_value = mock_storage
+
+            # Create mock agent service
+            mock_version = MagicMock()
+            mock_version.version = "1.0.0"
+            mock_version.storage_key = "test-key"
+
+            mock_agent = MagicMock()
+            mock_agent.slug = sample_agent.slug
+            mock_agent.versions = [mock_version]
+
+            mock_service = AsyncMock()
+            mock_service.get_agent.return_value = mock_agent
+            mock_agent_service_class.return_value = mock_service
 
             response = await client.get(
                 f"/api/v1/agents/{sample_agent.slug}/download/1.0.0",
-                follow_redirects=False,
             )
 
         assert response.status_code == 404
