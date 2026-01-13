@@ -1,0 +1,98 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-marketplace-api
+  namespace: agent-marketplace
+  labels:
+    app: agent-marketplace-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: agent-marketplace-api
+  template:
+    metadata:
+      labels:
+        app: agent-marketplace-api
+    spec:
+      containers:
+        - name: api
+          image: kmcallo/agent-marketplace-api:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: agent-marketplace-secrets
+                  key: DATABASE_URL
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: agent-marketplace-secrets
+                  key: JWT_SECRET_KEY
+            - name: GITHUB_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: agent-marketplace-secrets
+                  key: GITHUB_CLIENT_ID
+            - name: GITHUB_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: agent-marketplace-secrets
+                  key: GITHUB_CLIENT_SECRET
+          envFrom:
+            - configMapRef:
+                name: agent-marketplace-config
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: agent-marketplace-api
+  namespace: agent-marketplace
+spec:
+  selector:
+    app: agent-marketplace-api
+  ports:
+    - port: 8000
+      targetPort: 8000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: agent-marketplace-api-ingress
+  namespace: agent-marketplace
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+spec:
+  rules:
+    - host: api.agent-marketplace.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: agent-marketplace-api
+                port:
+                  number: 8000

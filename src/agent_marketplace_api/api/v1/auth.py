@@ -25,6 +25,7 @@ from agent_marketplace_api.security import (
     verify_token,
 )
 from agent_marketplace_api.services.user_service import UserService
+from agent_marketplace_api.api.deps import CurrentUserDep
 
 router = APIRouter()
 settings = get_settings()
@@ -191,3 +192,9 @@ async def logout() -> None:
     # JWT tokens are stateless, so logout is handled client-side
     # In a production app, you might want to blacklist the token
     return None
+
+
+@router.get("/me", response_model=UserResponse)
+async def get_current_user_info(current_user: CurrentUserDep) -> UserResponse:
+    """Get current authenticated user information."""
+    return UserResponse.model_validate(current_user)
