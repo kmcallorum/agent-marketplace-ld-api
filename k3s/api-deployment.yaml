@@ -6,7 +6,7 @@ metadata:
   labels:
     app: agent-marketplace-api
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: agent-marketplace-api
@@ -42,6 +42,16 @@ spec:
                 secretKeyRef:
                   name: agent-marketplace-secrets
                   key: GITHUB_CLIENT_SECRET
+            - name: S3_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: agent-marketplace-secrets
+                  key: S3_ACCESS_KEY
+            - name: S3_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: agent-marketplace-secrets
+                  key: S3_SECRET_KEY
           envFrom:
             - configMapRef:
                 name: agent-marketplace-config

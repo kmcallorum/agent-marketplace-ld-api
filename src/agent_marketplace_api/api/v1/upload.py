@@ -3,7 +3,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, Response
 
 from agent_marketplace_api.api.deps import AgentServiceDep, CurrentUserDep
 from agent_marketplace_api.services.agent_service import AgentNotFoundError
@@ -26,10 +26,10 @@ async def download_latest(
     slug: str,
     agent_service: AgentServiceDep,
     storage: StorageDep,
-) -> RedirectResponse:
+) -> Response:
     """Download the latest version of an agent.
 
-    Redirects to a presigned S3 URL for direct download.
+    Streams the file directly from storage.
     """
     try:
         agent = await agent_service.get_agent(slug)
@@ -50,7 +50,7 @@ async def download_latest(
     storage_key = latest_version.storage_key
 
     try:
-        presigned_url = await storage.generate_presigned_download_url(storage_key)
+        file_content = await storage.download_file(storage_key)
     except StorageFileNotFoundError as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -62,7 +62,12 @@ async def download_latest(
     agent.downloads += 1
     await agent_service.repo.update(agent)
 
-    return RedirectResponse(url=presigned_url, status_code=status.HTTP_302_FOUND)
+    filename = f"{slug}-{latest_version.version}.zip"
+    return Response(
+        content=file_content,
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @router.get("/{slug}/download/{version}")
@@ -71,10 +76,10 @@ async def download_version(
     version: str,
     agent_service: AgentServiceDep,
     storage: StorageDep,
-) -> RedirectResponse:
+) -> Response:
     """Download a specific version of an agent.
 
-    Redirects to a presigned S3 URL for direct download.
+    Streams the file directly from storage.
     """
     try:
         agent = await agent_service.get_agent(slug)
@@ -98,7 +103,7 @@ async def download_version(
         )
 
     try:
-        presigned_url = await storage.generate_presigned_download_url(target_version.storage_key)
+        file_content = await storage.download_file(target_version.storage_key)
     except StorageFileNotFoundError as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -109,7 +114,12 @@ async def download_version(
     agent.downloads += 1
     await agent_service.repo.update(agent)
 
-    return RedirectResponse(url=presigned_url, status_code=status.HTTP_302_FOUND)
+    filename = f"{slug}-{version}.zip"
+    return Response(
+        content=file_content,
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @router.get("/{slug}/presigned-upload")

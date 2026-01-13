@@ -8,6 +8,7 @@ resources:
   - secrets.yaml
   - configmap.yaml
   - postgres.yaml
+  - minio.yaml
   - api-deployment.yaml
   # Run migrate-job.yaml manually after postgres is ready
 

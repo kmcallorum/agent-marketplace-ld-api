@@ -8,3 +8,7 @@ data:
   ENVIRONMENT: "production"
   APP_NAME: "Agent Marketplace API"
   API_V1_PREFIX: "/api/v1"
+  # S3/MinIO settings - internal service for API streaming
+  S3_ENDPOINT: "http://minio:9000"
+  S3_BUCKET: "agent-marketplace"
+  S3_REGION: "us-east-1"
