@@ -3,7 +3,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.responses import RedirectResponse, Response
+from fastapi.responses import Response
 
 from agent_marketplace_api.api.deps import AgentServiceDep, CurrentUserDep
 from agent_marketplace_api.services.agent_service import AgentNotFoundError

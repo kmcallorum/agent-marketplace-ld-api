@@ -8,6 +8,7 @@ from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from agent_marketplace_api.api.deps import CurrentUserDep
 from agent_marketplace_api.auth import (
     GitHubOAuthError,
     exchange_github_code,
@@ -25,7 +26,6 @@ from agent_marketplace_api.security import (
     verify_token,
 )
 from agent_marketplace_api.services.user_service import UserService
-from agent_marketplace_api.api.deps import CurrentUserDep
 
 router = APIRouter()
 settings = get_settings()

@@ -8,7 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from agent_marketplace_api.database import get_db
-from agent_marketplace_api.models import Category, Agent
+from agent_marketplace_api.models import Agent, Category
 from agent_marketplace_api.schemas import AgentListResponse, AgentSummary
 
 router = APIRouter()

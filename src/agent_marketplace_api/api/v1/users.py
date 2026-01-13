@@ -7,9 +7,9 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from agent_marketplace_api.database import get_db
-from agent_marketplace_api.repositories.user_repo import UserRepository
 from agent_marketplace_api.repositories.agent_repo import AgentRepository
-from agent_marketplace_api.schemas import UserResponse, AgentListResponse, AgentSummary
+from agent_marketplace_api.repositories.user_repo import UserRepository
+from agent_marketplace_api.schemas import AgentListResponse, AgentSummary, UserResponse
 
 router = APIRouter()
 
