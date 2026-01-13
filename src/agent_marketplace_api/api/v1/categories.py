@@ -41,9 +41,7 @@ async def get_categories(
     result = await db.execute(select(Category).order_by(Category.name))
     categories = result.scalars().all()
 
-    return CategoriesResponse(
-        categories=[CategoryResponse.model_validate(c) for c in categories]
-    )
+    return CategoriesResponse(categories=[CategoryResponse.model_validate(c) for c in categories])
 
 
 @router.get("/{slug}", response_model=CategoryResponse)
@@ -99,9 +97,7 @@ async def get_category_agents(
     from sqlalchemy import func
 
     count_result = await db.execute(
-        select(func.count(Agent.id))
-        .join(Agent.categories)
-        .where(Category.id == category.id)
+        select(func.count(Agent.id)).join(Agent.categories).where(Category.id == category.id)
     )
     total = count_result.scalar() or 0
 
