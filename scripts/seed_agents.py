@@ -4,19 +4,18 @@
 import asyncio
 import os
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 
 # Add src to path for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-from agent_marketplace_api.models.user import User
 from agent_marketplace_api.models.agent import Agent, AgentVersion
-
+from agent_marketplace_api.models.user import User
 
 SAMPLE_AGENTS = [
     {
@@ -143,7 +142,7 @@ async def seed_agents():
                 print(f"Skipping {agent_data['name']} (already exists)")
                 continue
 
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             agent = Agent(
                 name=agent_data["name"],
                 slug=agent_data["slug"],

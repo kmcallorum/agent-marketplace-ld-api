@@ -57,10 +57,13 @@ async def download_latest(
             detail="Agent file not found in storage",
         ) from e
 
-    # Increment download counter (fire and forget - don't wait)
-    # In production, this would be a background task
-    agent.downloads += 1
-    await agent_service.repo.update(agent)
+    # Increment download counter (fire and forget)
+    # Errors are silently ignored as the download should succeed regardless
+    try:
+        agent.downloads += 1
+        await agent_service.repo.update(agent)
+    except Exception:
+        pass  # Non-critical: download count is best-effort
 
     filename = f"{slug}-{latest_version.version}.zip"
     return Response(
@@ -110,9 +113,13 @@ async def download_version(
             detail="Agent file not found in storage",
         ) from e
 
-    # Increment download counter
-    agent.downloads += 1
-    await agent_service.repo.update(agent)
+    # Increment download counter (fire and forget)
+    # Errors are silently ignored as the download should succeed regardless
+    try:
+        agent.downloads += 1
+        await agent_service.repo.update(agent)
+    except Exception:
+        pass  # Non-critical: download count is best-effort
 
     filename = f"{slug}-{version}.zip"
     return Response(

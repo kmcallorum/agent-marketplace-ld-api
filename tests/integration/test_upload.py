@@ -224,17 +224,26 @@ class TestDownloadLatest:
         """Test downloading latest version streams file content."""
         with (
             patch("agent_marketplace_api.api.v1.upload.get_storage_service") as mock_get_storage,
-            patch(
-                "agent_marketplace_api.repositories.agent_repo.AgentRepository.update"
-            ) as mock_update,
+            patch("agent_marketplace_api.api.deps.AgentService") as mock_service_class,
         ):
             # Mock storage to return file content
             mock_storage = AsyncMock()
             mock_storage.download_file.return_value = b"fake zip content"
             mock_get_storage.return_value = mock_storage
 
-            # Mock repo update to avoid SQLAlchemy session issues
-            mock_update.return_value = sample_agent
+            # Mock agent service to return agent-like object
+            mock_version = MagicMock()
+            mock_version.version = "1.0.0"
+            mock_version.storage_key = "test-key"
+
+            mock_agent = MagicMock()
+            mock_agent.versions = [mock_version]
+            mock_agent.downloads = 0
+
+            mock_service = AsyncMock()
+            mock_service.get_agent.return_value = mock_agent
+            mock_service.repo = AsyncMock()
+            mock_service_class.return_value = mock_service
 
             response = await client.get(
                 f"/api/v1/agents/{sample_agent.slug}/download",
@@ -318,16 +327,25 @@ class TestDownloadVersion:
         """Test downloading specific version streams file content."""
         with (
             patch("agent_marketplace_api.api.v1.upload.get_storage_service") as mock_get_storage,
-            patch(
-                "agent_marketplace_api.repositories.agent_repo.AgentRepository.update"
-            ) as mock_update,
+            patch("agent_marketplace_api.api.deps.AgentService") as mock_service_class,
         ):
             mock_storage = AsyncMock()
             mock_storage.download_file.return_value = b"fake zip v1.0.0"
             mock_get_storage.return_value = mock_storage
 
-            # Mock repo update to avoid SQLAlchemy session issues
-            mock_update.return_value = sample_agent
+            # Mock agent service to return agent-like object
+            mock_version = MagicMock()
+            mock_version.version = "1.0.0"
+            mock_version.storage_key = "test-key"
+
+            mock_agent = MagicMock()
+            mock_agent.versions = [mock_version]
+            mock_agent.downloads = 0
+
+            mock_service = AsyncMock()
+            mock_service.get_agent.return_value = mock_agent
+            mock_service.repo = AsyncMock()
+            mock_service_class.return_value = mock_service
 
             response = await client.get(
                 f"/api/v1/agents/{sample_agent.slug}/download/1.0.0",
