@@ -188,6 +188,17 @@ uv run alembic downgrade -1
 uv run alembic current
 ```
 
+## Deployment Tutorials
+
+Detailed step-by-step guides for deploying to production:
+
+| Tutorial | Description |
+|----------|-------------|
+| [Linux VM](docs/TUTORIAL_LINUX_VM.md) | Deploy on Ubuntu/Debian with systemd, Nginx, and Let's Encrypt |
+| [Docker](docs/TUTORIAL_DOCKER.md) | Deploy with Docker Compose for development and production |
+| [Kubernetes / K3s](docs/TUTORIAL_KUBERNETES.md) | Deploy on K8s or lightweight K3s with autoscaling and monitoring |
+| [Windows](docs/TUTORIAL_WINDOWS.md) | Deploy on Windows 10/11 or Windows Server with WSL2, native, or IIS |
+
 ## Docker
 
 ### Build Image
