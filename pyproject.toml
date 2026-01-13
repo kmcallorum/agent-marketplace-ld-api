@@ -76,6 +76,7 @@ markers = [
 [tool.coverage.run]
 source = ["src/agent_marketplace_api"]
 branch = true
+relative_files = true
 
 [tool.coverage.report]
 exclude_lines = [
