@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question
+    url: https://github.com/kmcallorum/agent-marketplace-ld-api/discussions/new?category=q-a
+    about: Ask questions in GitHub Discussions
+  - name: Documentation
+    url: https://github.com/kmcallorum/agent-marketplace-ld-api#readme
+    about: Check the README and docs first
