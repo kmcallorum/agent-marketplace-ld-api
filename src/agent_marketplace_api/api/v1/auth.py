@@ -1,8 +1,10 @@
 """Authentication API endpoints."""
 
 from typing import Annotated
+from urllib.parse import urlencode
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -11,6 +13,7 @@ from agent_marketplace_api.auth import (
     exchange_github_code,
     get_github_user,
 )
+from agent_marketplace_api.config import get_settings
 from agent_marketplace_api.database import get_db
 from agent_marketplace_api.repositories.user_repo import UserRepository
 from agent_marketplace_api.schemas import UserResponse
@@ -24,6 +27,7 @@ from agent_marketplace_api.security import (
 from agent_marketplace_api.services.user_service import UserService
 
 router = APIRouter()
+settings = get_settings()
 
 
 class GitHubAuthRequest(BaseModel):
@@ -52,6 +56,53 @@ class AccessTokenResponse(BaseModel):
 
     access_token: str
     token_type: str = "bearer"
+
+
+@router.get("/github")
+async def github_login() -> RedirectResponse:
+    """Redirect to GitHub OAuth authorization page."""
+    params = {
+        "client_id": settings.github_client_id,
+        "scope": "read:user user:email",
+    }
+    github_auth_url = f"https://github.com/login/oauth/authorize?{urlencode(params)}"
+    return RedirectResponse(url=github_auth_url)
+
+
+@router.get("/github/callback", response_model=TokenResponse)
+async def github_callback(
+    code: Annotated[str, Query(description="GitHub OAuth authorization code")],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> TokenResponse:
+    """Handle GitHub OAuth callback and return JWT tokens."""
+    try:
+        # Exchange code for GitHub access token
+        github_token = await exchange_github_code(code)
+
+        # Get user info from GitHub
+        github_user = await get_github_user(github_token)
+
+        # Get or create user in our database
+        user_repo = UserRepository(db)
+        user_service = UserService(user_repo)
+        user = await user_service.get_or_create_from_github(github_user)
+
+        # Create JWT tokens
+        token_data = {"sub": str(user.id), "username": user.username}
+        access_token = create_access_token(token_data)
+        refresh_token = create_refresh_token(token_data)
+
+        return TokenResponse(
+            access_token=access_token,
+            refresh_token=refresh_token,
+            user=UserResponse.model_validate(user),
+        )
+
+    except GitHubOAuthError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        ) from e
 
 
 @router.post("/github", response_model=TokenResponse)
