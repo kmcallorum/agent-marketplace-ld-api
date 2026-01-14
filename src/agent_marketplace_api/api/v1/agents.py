@@ -241,7 +241,7 @@ async def unstar_agent(
     )
     if not check.first():
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
+            status_code=status.HTTP_409_CONFLICT,
             detail="Agent not starred",
         )
 

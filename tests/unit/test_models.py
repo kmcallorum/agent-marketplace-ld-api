@@ -38,6 +38,7 @@ class TestUserModel:
             "avatar_url",
             "bio",
             "reputation",
+            "role",
             "is_active",
             "created_at",
             "updated_at",
