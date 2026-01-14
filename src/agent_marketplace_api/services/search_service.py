@@ -61,20 +61,19 @@ class SearchService:
         Returns:
             AgentSearchResult with matching agents
         """
-        search_pattern = f"%{query}%"
-
         # Build base query
-        stmt = (
-            select(Agent)
-            .where(Agent.is_public.is_(True))
-            .where(
+        stmt = select(Agent).where(Agent.is_public.is_(True))
+
+        # Apply text search filter only if query is provided
+        if query:
+            search_pattern = f"%{query}%"
+            stmt = stmt.where(
                 or_(
                     Agent.name.ilike(search_pattern),
                     Agent.description.ilike(search_pattern),
                     Agent.slug.ilike(search_pattern),
                 )
             )
-        )
 
         # Apply category filter
         if category:

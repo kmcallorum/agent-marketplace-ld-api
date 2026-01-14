@@ -39,7 +39,7 @@ async def global_search(
 @router.get("/agents", response_model=AgentSearchResponse)
 async def search_agents(
     service: SearchServiceDep,
-    q: str = Query(..., min_length=1, max_length=200, description="Search query"),
+    q: str | None = Query(None, max_length=200, description="Search query (optional)"),
     category: str | None = Query(None, description="Filter by category slug"),
     min_rating: float | None = Query(None, ge=0, le=5, description="Minimum rating"),
     sort: str = Query(
@@ -51,13 +51,14 @@ async def search_agents(
     offset: int = Query(0, ge=0, description="Pagination offset"),
 ) -> AgentSearchResponse:
     """
-    Search agents by name and description.
+    Search agents by name and description, or browse by category.
 
     Supports filtering by category and minimum rating.
     Results can be sorted by relevance, downloads, stars, rating, or creation date.
+    If no query is provided, returns all agents (optionally filtered by category).
     """
     result = await service.search_agents(
-        q,
+        q or "",
         category=category,
         min_rating=min_rating,
         sort=sort,
