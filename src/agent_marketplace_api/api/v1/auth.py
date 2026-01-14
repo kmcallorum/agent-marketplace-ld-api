@@ -6,9 +6,8 @@ from urllib.parse import urlencode
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from agent_marketplace_api.api.deps import CurrentUserDep
 from agent_marketplace_api.auth import (
@@ -16,9 +15,9 @@ from agent_marketplace_api.auth import (
     exchange_github_code,
     get_github_user,
 )
-from agent_marketplace_api.models import Agent, agent_stars
 from agent_marketplace_api.config import get_settings
 from agent_marketplace_api.database import get_db
+from agent_marketplace_api.models import Agent, agent_stars
 from agent_marketplace_api.repositories.user_repo import UserRepository
 from agent_marketplace_api.schemas import UserResponse
 from agent_marketplace_api.security import (
