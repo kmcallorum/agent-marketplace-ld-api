@@ -11,7 +11,6 @@ from sqlalchemy.orm import selectinload
 from agent_marketplace_api.api.deps import AdminUserDep
 from agent_marketplace_api.database import get_db
 from agent_marketplace_api.models import Agent, Category, agent_categories
-from agent_marketplace_api.schemas.agent import AgentSummary
 from agent_marketplace_api.schemas.user import UserSummary
 
 router = APIRouter()
@@ -51,7 +50,7 @@ class CategoryResponse(BaseModel):
 @router.post("/categories", response_model=CategoryResponse, status_code=status.HTTP_201_CREATED)
 async def create_category(
     data: CategoryCreate,
-    admin: AdminUserDep,
+    _admin: AdminUserDep,
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> CategoryResponse:
     """Create a new category. Admin only."""
@@ -89,7 +88,7 @@ async def create_category(
 async def update_category(
     slug: str,
     data: CategoryUpdate,
-    admin: AdminUserDep,
+    _admin: AdminUserDep,
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> CategoryResponse:
     """Update a category. Admin only."""
@@ -126,7 +125,7 @@ async def update_category(
 @router.delete("/categories/{slug}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_category(
     slug: str,
-    admin: AdminUserDep,
+    _admin: AdminUserDep,
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> None:
     """Delete a category. Admin only."""
@@ -207,7 +206,7 @@ class BulkUpdateResponse(BaseModel):
 
 @router.get("/agents", response_model=AdminAgentListResponse)
 async def list_agents_admin(
-    admin: AdminUserDep,
+    _admin: AdminUserDep,
     db: Annotated[AsyncSession, Depends(get_db)],
     limit: Annotated[int, Query(ge=1, le=100)] = 100,
     offset: Annotated[int, Query(ge=0)] = 0,
@@ -268,7 +267,7 @@ async def list_agents_admin(
 async def update_agent_admin(
     slug: str,
     data: AdminAgentUpdate,
-    admin: AdminUserDep,
+    _admin: AdminUserDep,
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> AdminAgentResponse:
     """Update an agent. Admin only."""
@@ -354,7 +353,7 @@ async def update_agent_admin(
 @router.delete("/agents/{slug}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_agent_admin(
     slug: str,
-    admin: AdminUserDep,
+    _admin: AdminUserDep,
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> None:
     """Delete an agent. Admin only."""
@@ -381,7 +380,7 @@ async def delete_agent_admin(
 @router.post("/agents/bulk-category", response_model=BulkUpdateResponse)
 async def bulk_update_category(
     data: BulkCategoryUpdate,
-    admin: AdminUserDep,
+    _admin: AdminUserDep,
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> BulkUpdateResponse:
     """Bulk move agents to a new category. Admin only."""
