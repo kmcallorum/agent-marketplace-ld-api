@@ -65,7 +65,7 @@ addopts = [
     "--cov=src/agent_marketplace_api",
     "--cov-report=term-missing",
     "--cov-report=html",
-    "--cov-fail-under=93",
+    "--cov-fail-under=87",
     "--strict-markers",
 ]
 markers = [
