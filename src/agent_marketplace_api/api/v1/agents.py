@@ -4,8 +4,12 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
 from pydantic import BaseModel
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from agent_marketplace_api.api.deps import AgentServiceDep, CurrentUserDep
+from agent_marketplace_api.database import get_db
+from agent_marketplace_api.models import Agent, agent_stars
 from agent_marketplace_api.schemas import AgentCreate, AgentListResponse, AgentResponse
 from agent_marketplace_api.schemas.agent import AgentSummary
 from agent_marketplace_api.services.agent_service import AgentNotFoundError
@@ -171,3 +175,82 @@ async def create_agent(
         id=agent.id,
         slug=agent.slug,
     )
+
+
+@router.post("/{slug}/star", status_code=status.HTTP_204_NO_CONTENT)
+async def star_agent(
+    slug: str,
+    current_user: CurrentUserDep,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> None:
+    """Star an agent (requires authentication)."""
+    # Find the agent
+    result = await db.execute(select(Agent).where(Agent.slug == slug))
+    agent = result.scalar_one_or_none()
+
+    if not agent:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Agent '{slug}' not found",
+        )
+
+    # Check if already starred
+    check = await db.execute(
+        select(agent_stars).where(
+            agent_stars.c.user_id == current_user.id,
+            agent_stars.c.agent_id == agent.id,
+        )
+    )
+    if check.first():
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Agent already starred",
+        )
+
+    # Add star
+    await db.execute(
+        agent_stars.insert().values(user_id=current_user.id, agent_id=agent.id)
+    )
+    agent.stars += 1
+    await db.commit()
+
+
+@router.delete("/{slug}/star", status_code=status.HTTP_204_NO_CONTENT)
+async def unstar_agent(
+    slug: str,
+    current_user: CurrentUserDep,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> None:
+    """Unstar an agent (requires authentication)."""
+    # Find the agent
+    result = await db.execute(select(Agent).where(Agent.slug == slug))
+    agent = result.scalar_one_or_none()
+
+    if not agent:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Agent '{slug}' not found",
+        )
+
+    # Check if starred
+    check = await db.execute(
+        select(agent_stars).where(
+            agent_stars.c.user_id == current_user.id,
+            agent_stars.c.agent_id == agent.id,
+        )
+    )
+    if not check.first():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Agent not starred",
+        )
+
+    # Remove star
+    await db.execute(
+        agent_stars.delete().where(
+            agent_stars.c.user_id == current_user.id,
+            agent_stars.c.agent_id == agent.id,
+        )
+    )
+    agent.stars = max(0, agent.stars - 1)
+    await db.commit()

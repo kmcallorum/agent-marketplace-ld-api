@@ -8,12 +8,15 @@ from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from sqlalchemy import select
+
 from agent_marketplace_api.api.deps import CurrentUserDep
 from agent_marketplace_api.auth import (
     GitHubOAuthError,
     exchange_github_code,
     get_github_user,
 )
+from agent_marketplace_api.models import Agent, agent_stars
 from agent_marketplace_api.config import get_settings
 from agent_marketplace_api.database import get_db
 from agent_marketplace_api.repositories.user_repo import UserRepository
@@ -198,3 +201,24 @@ async def logout() -> None:
 async def get_current_user_info(current_user: CurrentUserDep) -> UserResponse:
     """Get current authenticated user information."""
     return UserResponse.model_validate(current_user)
+
+
+class StarredAgentsResponse(BaseModel):
+    """Response with user's starred agent slugs."""
+
+    starred: list[str]
+
+
+@router.get("/me/starred", response_model=StarredAgentsResponse)
+async def get_starred_agents(
+    current_user: CurrentUserDep,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> StarredAgentsResponse:
+    """Get current user's starred agent slugs."""
+    result = await db.execute(
+        select(Agent.slug)
+        .join(agent_stars, agent_stars.c.agent_id == Agent.id)
+        .where(agent_stars.c.user_id == current_user.id)
+    )
+    slugs = [row[0] for row in result.all()]
+    return StarredAgentsResponse(starred=slugs)

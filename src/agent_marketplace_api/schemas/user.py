@@ -36,6 +36,7 @@ class UserResponse(UserBase):
     bio: str | None = None
     reputation: int = 0
     is_active: bool = True
+    role: str = "user"
     created_at: datetime
     updated_at: datetime
 

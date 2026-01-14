@@ -50,7 +50,15 @@ class AgentRepository(BaseRepository[Agent]):
         query = select(Agent).where(Agent.is_public.is_(True))
 
         if category:
-            query = query.join(Agent.categories).where(Agent.categories.any(slug=category))
+            from agent_marketplace_api.models import Category, agent_categories
+            # Use exists subquery to avoid duplicates from multi-category agents
+            query = query.where(
+                Agent.id.in_(
+                    select(agent_categories.c.agent_id)
+                    .join(Category, Category.id == agent_categories.c.category_id)
+                    .where(Category.slug == category)
+                )
+            )
 
         # Sorting
         sort_column = getattr(Agent, sort_by, Agent.created_at)
@@ -69,7 +77,14 @@ class AgentRepository(BaseRepository[Agent]):
         query = select(func.count()).select_from(Agent).where(Agent.is_public.is_(True))
 
         if category:
-            query = query.join(Agent.categories).where(Agent.categories.any(slug=category))
+            from agent_marketplace_api.models import Category, agent_categories
+            query = query.where(
+                Agent.id.in_(
+                    select(agent_categories.c.agent_id)
+                    .join(Category, Category.id == agent_categories.c.category_id)
+                    .where(Category.slug == category)
+                )
+            )
 
         result = await self.db.execute(query)
         return result.scalar_one()

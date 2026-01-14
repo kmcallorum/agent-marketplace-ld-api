@@ -93,3 +93,55 @@ async def get_user_agents(
         offset=offset,
         has_more=offset + len(agents) < total,
     )
+
+
+@router.get("/{username}/starred", response_model=AgentListResponse)
+async def get_user_starred_agents(
+    username: str,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+    offset: Annotated[int, Query(ge=0)] = 0,
+) -> AgentListResponse:
+    """Get agents starred by a user."""
+    from sqlalchemy import func, select
+    from sqlalchemy.orm import selectinload
+
+    from agent_marketplace_api.models import Agent
+    from agent_marketplace_api.models.user import agent_stars
+
+    user_repo = UserRepository(db)
+    user = await user_repo.find_by_username(username)
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User '{username}' not found",
+        )
+
+    # Get starred agents with pagination
+    result = await db.execute(
+        select(Agent)
+        .join(agent_stars, agent_stars.c.agent_id == Agent.id)
+        .where(agent_stars.c.user_id == user.id)
+        .options(selectinload(Agent.author))
+        .order_by(agent_stars.c.created_at.desc())
+        .limit(limit)
+        .offset(offset)
+    )
+    agents = result.scalars().all()
+
+    # Get total count
+    count_result = await db.execute(
+        select(func.count())
+        .select_from(agent_stars)
+        .where(agent_stars.c.user_id == user.id)
+    )
+    total = count_result.scalar() or 0
+
+    return AgentListResponse(
+        items=[AgentSummary.model_validate(a) for a in agents],
+        total=total,
+        limit=limit,
+        offset=offset,
+        has_more=offset + len(agents) < total,
+    )
