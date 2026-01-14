@@ -132,9 +132,7 @@ async def get_user_starred_agents(
 
     # Get total count
     count_result = await db.execute(
-        select(func.count())
-        .select_from(agent_stars)
-        .where(agent_stars.c.user_id == user.id)
+        select(func.count()).select_from(agent_stars).where(agent_stars.c.user_id == user.id)
     )
     total = count_result.scalar() or 0
 

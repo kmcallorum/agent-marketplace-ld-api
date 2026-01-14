@@ -208,9 +208,7 @@ async def star_agent(
         )
 
     # Add star
-    await db.execute(
-        agent_stars.insert().values(user_id=current_user.id, agent_id=agent.id)
-    )
+    await db.execute(agent_stars.insert().values(user_id=current_user.id, agent_id=agent.id))
     agent.stars += 1
     await db.commit()
 

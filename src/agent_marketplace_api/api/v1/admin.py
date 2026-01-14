@@ -310,7 +310,9 @@ async def update_agent_admin(
 
         # Update category relationship
         await db.execute(delete(agent_categories).where(agent_categories.c.agent_id == agent.id))
-        await db.execute(insert(agent_categories).values(agent_id=agent.id, category_id=new_category.id))
+        await db.execute(
+            insert(agent_categories).values(agent_id=agent.id, category_id=new_category.id)
+        )
 
         # Update category counts
         if old_category and old_category.id != new_category.id:
@@ -411,7 +413,9 @@ async def bulk_update_category(
 
         # Update category relationship
         await db.execute(delete(agent_categories).where(agent_categories.c.agent_id == agent.id))
-        await db.execute(insert(agent_categories).values(agent_id=agent.id, category_id=new_category.id))
+        await db.execute(
+            insert(agent_categories).values(agent_id=agent.id, category_id=new_category.id)
+        )
 
         # Update counts
         if old_category:

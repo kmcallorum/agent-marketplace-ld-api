@@ -99,9 +99,7 @@ class TestAdminCategories:
     """Integration tests for admin category endpoints."""
 
     @pytest.mark.asyncio
-    async def test_create_category_success(
-        self, client: AsyncClient, admin_user: User
-    ) -> None:
+    async def test_create_category_success(self, client: AsyncClient, admin_user: User) -> None:
         """Test admin can create a category."""
         response = await client.post(
             "/api/v1/admin/categories",
@@ -130,9 +128,7 @@ class TestAdminCategories:
         assert response.status_code == 401
 
     @pytest.mark.asyncio
-    async def test_create_category_forbidden(
-        self, client: AsyncClient, regular_user: User
-    ) -> None:
+    async def test_create_category_forbidden(self, client: AsyncClient, regular_user: User) -> None:
         """Test non-admin user cannot create category."""
         response = await client.post(
             "/api/v1/admin/categories",

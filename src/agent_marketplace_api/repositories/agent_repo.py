@@ -51,6 +51,7 @@ class AgentRepository(BaseRepository[Agent]):
 
         if category:
             from agent_marketplace_api.models import Category, agent_categories
+
             # Use exists subquery to avoid duplicates from multi-category agents
             query = query.where(
                 Agent.id.in_(
@@ -78,6 +79,7 @@ class AgentRepository(BaseRepository[Agent]):
 
         if category:
             from agent_marketplace_api.models import Category, agent_categories
+
             query = query.where(
                 Agent.id.in_(
                     select(agent_categories.c.agent_id)
