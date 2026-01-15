@@ -10,7 +10,7 @@ from sqlalchemy.orm import selectinload
 
 from agent_marketplace_api.api.deps import AdminUserDep
 from agent_marketplace_api.database import get_db
-from agent_marketplace_api.models import Agent, Category, agent_categories
+from agent_marketplace_api.models import Agent, Category, User, agent_categories
 from agent_marketplace_api.schemas.user import UserSummary
 
 router = APIRouter()
@@ -426,3 +426,294 @@ async def bulk_update_category(
     await db.commit()
 
     return BulkUpdateResponse(updated=updated)
+
+
+# =============================================================================
+# User Management Endpoints
+# =============================================================================
+
+
+class AdminUserResponse(BaseModel):
+    """User response for admin endpoints."""
+
+    id: int
+    github_id: int
+    username: str
+    email: str
+    avatar_url: str | None = None
+    bio: str | None = None
+    reputation: int = 0
+    role: str = "user"
+    is_active: bool = True
+    is_blocked: bool = False
+    blocked_reason: str | None = None
+    created_at: str
+    updated_at: str
+
+    class Config:
+        from_attributes = True
+
+
+class AdminUserListResponse(BaseModel):
+    """Response for admin user list."""
+
+    items: list[AdminUserResponse]
+    total: int
+
+
+class AdminUserUpdate(BaseModel):
+    """Schema for admin updating a user."""
+
+    role: str | None = Field(None, pattern=r"^(user|admin)$")
+    bio: str | None = None
+    is_active: bool | None = None
+
+
+class AdminUserBlock(BaseModel):
+    """Schema for blocking a user."""
+
+    blocked_reason: str = Field(..., min_length=10, max_length=500)
+
+
+@router.get("/users", response_model=AdminUserListResponse)
+async def list_users_admin(
+    _admin: AdminUserDep,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    limit: Annotated[int, Query(ge=1, le=100)] = 100,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    search: str | None = None,
+) -> AdminUserListResponse:
+    """List all users for admin."""
+    query = select(User).order_by(User.created_at.desc())
+
+    # Search by username or email
+    if search:
+        search_pattern = f"%{search}%"
+        query = query.where(
+            (User.username.ilike(search_pattern)) | (User.email.ilike(search_pattern))
+        )
+
+    # Get total count
+    count_query = select(func.count(User.id))
+    if search:
+        search_pattern = f"%{search}%"
+        count_query = count_query.where(
+            (User.username.ilike(search_pattern)) | (User.email.ilike(search_pattern))
+        )
+    total_result = await db.execute(count_query)
+    total = total_result.scalar() or 0
+
+    # Apply pagination
+    query = query.offset(offset).limit(limit)
+    result = await db.execute(query)
+    users = result.scalars().all()
+
+    items = [
+        AdminUserResponse(
+            id=user.id,
+            github_id=user.github_id,
+            username=user.username,
+            email=user.email,
+            avatar_url=user.avatar_url,
+            bio=user.bio,
+            reputation=user.reputation,
+            role=user.role,
+            is_active=user.is_active,
+            is_blocked=user.is_blocked,
+            blocked_reason=user.blocked_reason,
+            created_at=user.created_at.isoformat(),
+            updated_at=user.updated_at.isoformat(),
+        )
+        for user in users
+    ]
+
+    return AdminUserListResponse(items=items, total=total)
+
+
+@router.get("/users/{user_id}", response_model=AdminUserResponse)
+async def get_user_admin(
+    user_id: int,
+    _admin: AdminUserDep,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> AdminUserResponse:
+    """Get a user by ID. Admin only."""
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User {user_id} not found",
+        )
+
+    return AdminUserResponse(
+        id=user.id,
+        github_id=user.github_id,
+        username=user.username,
+        email=user.email,
+        avatar_url=user.avatar_url,
+        bio=user.bio,
+        reputation=user.reputation,
+        role=user.role,
+        is_active=user.is_active,
+        is_blocked=user.is_blocked,
+        blocked_reason=user.blocked_reason,
+        created_at=user.created_at.isoformat(),
+        updated_at=user.updated_at.isoformat(),
+    )
+
+
+@router.put("/users/{user_id}", response_model=AdminUserResponse)
+async def update_user_admin(
+    user_id: int,
+    data: AdminUserUpdate,
+    _admin: AdminUserDep,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> AdminUserResponse:
+    """Update a user. Admin only."""
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User {user_id} not found",
+        )
+
+    # Update fields if provided
+    if data.role is not None:
+        user.role = data.role
+    if data.bio is not None:
+        user.bio = data.bio
+    if data.is_active is not None:
+        user.is_active = data.is_active
+
+    await db.commit()
+    await db.refresh(user)
+
+    return AdminUserResponse(
+        id=user.id,
+        github_id=user.github_id,
+        username=user.username,
+        email=user.email,
+        avatar_url=user.avatar_url,
+        bio=user.bio,
+        reputation=user.reputation,
+        role=user.role,
+        is_active=user.is_active,
+        is_blocked=user.is_blocked,
+        blocked_reason=user.blocked_reason,
+        created_at=user.created_at.isoformat(),
+        updated_at=user.updated_at.isoformat(),
+    )
+
+
+@router.post("/users/{user_id}/block", response_model=AdminUserResponse)
+async def block_user_admin(
+    user_id: int,
+    data: AdminUserBlock,
+    _admin: AdminUserDep,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> AdminUserResponse:
+    """Block a user. Admin only."""
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User {user_id} not found",
+        )
+
+    if user.role == "admin":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot block an admin user",
+        )
+
+    user.is_blocked = True
+    user.blocked_reason = data.blocked_reason
+
+    await db.commit()
+    await db.refresh(user)
+
+    return AdminUserResponse(
+        id=user.id,
+        github_id=user.github_id,
+        username=user.username,
+        email=user.email,
+        avatar_url=user.avatar_url,
+        bio=user.bio,
+        reputation=user.reputation,
+        role=user.role,
+        is_active=user.is_active,
+        is_blocked=user.is_blocked,
+        blocked_reason=user.blocked_reason,
+        created_at=user.created_at.isoformat(),
+        updated_at=user.updated_at.isoformat(),
+    )
+
+
+@router.post("/users/{user_id}/unblock", response_model=AdminUserResponse)
+async def unblock_user_admin(
+    user_id: int,
+    _admin: AdminUserDep,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> AdminUserResponse:
+    """Unblock a user. Admin only."""
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User {user_id} not found",
+        )
+
+    user.is_blocked = False
+    user.blocked_reason = None
+
+    await db.commit()
+    await db.refresh(user)
+
+    return AdminUserResponse(
+        id=user.id,
+        github_id=user.github_id,
+        username=user.username,
+        email=user.email,
+        avatar_url=user.avatar_url,
+        bio=user.bio,
+        reputation=user.reputation,
+        role=user.role,
+        is_active=user.is_active,
+        is_blocked=user.is_blocked,
+        blocked_reason=user.blocked_reason,
+        created_at=user.created_at.isoformat(),
+        updated_at=user.updated_at.isoformat(),
+    )
+
+
+@router.delete("/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_user_admin(
+    user_id: int,
+    _admin: AdminUserDep,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> None:
+    """Delete a user. Admin only."""
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User {user_id} not found",
+        )
+
+    if user.role == "admin":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cannot delete an admin user",
+        )
+
+    await db.delete(user)
+    await db.commit()

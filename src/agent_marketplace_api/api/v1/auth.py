@@ -61,6 +61,14 @@ class AccessTokenResponse(BaseModel):
     token_type: str = "bearer"
 
 
+class UserBlockedResponse(BaseModel):
+    """Response when user is blocked."""
+
+    blocked: bool = True
+    message: str
+    reason: str | None = None
+
+
 @router.get("/github")
 async def github_login() -> RedirectResponse:
     """Redirect to GitHub OAuth authorization page."""
@@ -89,6 +97,18 @@ async def github_callback(
         user_repo = UserRepository(db)
         user_service = UserService(user_repo)
         user = await user_service.get_or_create_from_github(github_user)
+
+        # Check if user is blocked
+        if user.is_blocked:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail={
+                    "blocked": True,
+                    "message": "Your account has been blocked by the administration team. "
+                    "If you wish to discuss this, please email admin or submit a support ticket.",
+                    "reason": user.blocked_reason,
+                },
+            )
 
         # Create JWT tokens
         token_data = {"sub": str(user.id), "username": user.username}
@@ -125,6 +145,18 @@ async def github_auth(
         user_repo = UserRepository(db)
         user_service = UserService(user_repo)
         user = await user_service.get_or_create_from_github(github_user)
+
+        # Check if user is blocked
+        if user.is_blocked:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail={
+                    "blocked": True,
+                    "message": "Your account has been blocked by the administration team. "
+                    "If you wish to discuss this, please email admin or submit a support ticket.",
+                    "reason": user.blocked_reason,
+                },
+            )
 
         # Create JWT tokens
         token_data = {"sub": str(user.id), "username": user.username}
@@ -168,6 +200,18 @@ async def refresh_token(
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="User not found",
+            )
+
+        # Check if user is blocked
+        if user.is_blocked:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail={
+                    "blocked": True,
+                    "message": "Your account has been blocked by the administration team. "
+                    "If you wish to discuss this, please email admin or submit a support ticket.",
+                    "reason": user.blocked_reason,
+                },
             )
 
         # Create new access token
