@@ -134,16 +134,11 @@ class ReviewService:
 
         Raises:
             AgentNotFoundError: If agent not found
-            CannotReviewOwnAgentError: If user owns the agent
             ReviewAlreadyExistsError: If user already reviewed
         """
         agent = await self.agent_repo.find_by_slug(agent_slug)
         if not agent:
             raise AgentNotFoundError(f"Agent '{agent_slug}' not found")
-
-        # Check if user is trying to review their own agent
-        if agent.author_id == user.id:
-            raise CannotReviewOwnAgentError("Cannot review your own agent")
 
         # Check if user already reviewed this agent
         existing = await self.review_repo.get_by_agent_and_user(agent.id, user.id)

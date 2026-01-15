@@ -15,7 +15,6 @@ from agent_marketplace_api.schemas.user import UserSummary
 from agent_marketplace_api.services.review_service import (
     AgentNotFoundError,
     AlreadyStarredError,
-    CannotReviewOwnAgentError,
     NotReviewOwnerError,
     NotStarredError,
     ReviewAlreadyExistsError,
@@ -82,18 +81,12 @@ async def create_review(
     """Create a review for an agent (requires authentication).
 
     A user can only leave one review per agent.
-    Users cannot review their own agents.
     """
     try:
         review = await service.create_review(slug, data, current_user)
     except AgentNotFoundError as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e),
-        ) from e
-    except CannotReviewOwnAgentError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
         ) from e
     except ReviewAlreadyExistsError as e:

@@ -12,7 +12,6 @@ from agent_marketplace_api.schemas.review import ReviewCreate, ReviewUpdate
 from agent_marketplace_api.services.review_service import (
     AgentNotFoundError,
     AlreadyStarredError,
-    CannotReviewOwnAgentError,
     NotReviewOwnerError,
     NotStarredError,
     ReviewAlreadyExistsError,
@@ -181,22 +180,6 @@ class TestCreateReview:
         data = ReviewCreate(rating=5)
         with pytest.raises(AgentNotFoundError):
             await review_service.create_review("non-existent", data, mock_user)
-
-    @pytest.mark.asyncio
-    async def test_create_review_own_agent(
-        self,
-        review_service: ReviewService,
-        mock_agent_repo: MagicMock,
-        mock_agent: Agent,
-        mock_user: User,
-    ) -> None:
-        """Test create_review on own agent."""
-        mock_agent.author_id = mock_user.id  # Same as user
-        mock_agent_repo.find_by_slug = AsyncMock(return_value=mock_agent)
-
-        data = ReviewCreate(rating=5)
-        with pytest.raises(CannotReviewOwnAgentError):
-            await review_service.create_review("test-agent", data, mock_user)
 
     @pytest.mark.asyncio
     async def test_create_review_already_reviewed(

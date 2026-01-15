@@ -242,14 +242,14 @@ class TestCreateReview:
         test_agent: Agent,
         author_user: User,
     ) -> None:
-        """Test creating a review for own agent."""
+        """Test creating a review for own agent (allowed)."""
         response = await client.post(
             f"/api/v1/agents/{test_agent.slug}/reviews",
             json={"rating": 5},
             headers=get_auth_header(author_user),
         )
 
-        assert response.status_code == 400
+        assert response.status_code == 201
 
     @pytest.mark.asyncio
     async def test_create_review_already_reviewed(
