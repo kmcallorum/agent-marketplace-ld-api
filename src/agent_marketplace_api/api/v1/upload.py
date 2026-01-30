@@ -3,7 +3,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.responses import Response
+from fastapi.responses import RedirectResponse, Response
 
 from agent_marketplace_api.api.deps import AgentServiceDep, CurrentUserDep
 from agent_marketplace_api.services.agent_service import AgentNotFoundError
@@ -48,6 +48,16 @@ async def download_latest(
 
     latest_version = agent.versions[0]  # Versions should be ordered by date desc
     storage_key = latest_version.storage_key
+
+    # Check if storage_key is an external URL (redirect instead of fetch)
+    if storage_key.startswith(("http://", "https://")):
+        # Increment download counter for external URLs (fire and forget)
+        try:
+            agent.downloads += 1
+            await agent_service.repo.update(agent)
+        except Exception:
+            pass  # Non-critical: download count is best-effort
+        return RedirectResponse(url=storage_key, status_code=status.HTTP_302_FOUND)
 
     try:
         file_content = await storage.download_file(storage_key)
@@ -104,6 +114,16 @@ async def download_version(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Version {version} not found for agent '{slug}'",
         )
+
+    # Check if storage_key is an external URL (redirect instead of fetch)
+    if target_version.storage_key.startswith(("http://", "https://")):
+        # Increment download counter for external URLs (fire and forget)
+        try:
+            agent.downloads += 1
+            await agent_service.repo.update(agent)
+        except Exception:
+            pass  # Non-critical: download count is best-effort
+        return RedirectResponse(url=target_version.storage_key, status_code=status.HTTP_302_FOUND)
 
     try:
         file_content = await storage.download_file(target_version.storage_key)
