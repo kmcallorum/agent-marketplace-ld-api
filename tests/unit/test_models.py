@@ -41,6 +41,7 @@ class TestUserModel:
             "role",
             "is_active",
             "is_blocked",
+            "blocked_reason",
             "created_at",
             "updated_at",
         }

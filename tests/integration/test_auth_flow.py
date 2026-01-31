@@ -180,7 +180,9 @@ class TestGitHubAuthEndpoint:
             )
 
         assert response.status_code == 403
-        assert "blocked" in response.json()["detail"].lower()
+        detail = response.json()["detail"]
+        assert detail["blocked"] is True
+        assert "blocked" in detail["message"].lower()
 
 
 class TestRefreshEndpoint:
@@ -315,7 +317,9 @@ class TestRefreshEndpoint:
         )
 
         assert response.status_code == 403
-        assert "blocked" in response.json()["detail"].lower()
+        detail = response.json()["detail"]
+        assert detail["blocked"] is True
+        assert "blocked" in detail["message"].lower()
 
 
 class TestLogoutEndpoint:
