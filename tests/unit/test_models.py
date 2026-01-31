@@ -40,6 +40,7 @@ class TestUserModel:
             "reputation",
             "role",
             "is_active",
+            "is_blocked",
             "created_at",
             "updated_at",
         }
