@@ -28,6 +28,23 @@ async def sample_user(db_session: AsyncSession) -> User:
     return user
 
 
+@pytest.fixture
+async def blocked_user(db_session: AsyncSession) -> User:
+    """Create a blocked user in the database."""
+    user = User(
+        github_id=99998,
+        username="blockeduser",
+        email="blocked@example.com",
+        avatar_url="https://example.com/blocked.png",
+        bio="Blocked user",
+        is_blocked=True,
+    )
+    db_session.add(user)
+    await db_session.flush()
+    await db_session.refresh(user)
+    return user
+
+
 class TestGitHubAuthEndpoint:
     """Tests for POST /api/v1/auth/github endpoint."""
 
@@ -129,6 +146,41 @@ class TestGitHubAuthEndpoint:
 
         assert response.status_code == 400
         assert "Invalid code" in response.json()["detail"]
+
+    @pytest.mark.asyncio
+    async def test_github_auth_blocked_user(
+        self,
+        client: AsyncClient,
+        blocked_user: User,
+    ) -> None:
+        """Test GitHub auth rejects blocked users."""
+        mock_github_user = GitHubUser(
+            id=blocked_user.github_id,
+            login=blocked_user.username,
+            email=blocked_user.email,
+            avatar_url=blocked_user.avatar_url,
+            name="Blocked User",
+        )
+
+        with (
+            patch(
+                "agent_marketplace_api.api.v1.auth.exchange_github_code",
+                new_callable=AsyncMock,
+                return_value="mock_github_token",
+            ),
+            patch(
+                "agent_marketplace_api.api.v1.auth.get_github_user",
+                new_callable=AsyncMock,
+                return_value=mock_github_user,
+            ),
+        ):
+            response = await client.post(
+                "/api/v1/auth/github",
+                json={"code": "valid_oauth_code"},
+            )
+
+        assert response.status_code == 403
+        assert "blocked" in response.json()["detail"].lower()
 
 
 class TestRefreshEndpoint:
@@ -245,6 +297,25 @@ class TestRefreshEndpoint:
 
         assert response.status_code == 401
         assert "Invalid token payload" in response.json()["detail"]
+
+    @pytest.mark.asyncio
+    async def test_refresh_blocked_user(
+        self,
+        client: AsyncClient,
+        blocked_user: User,
+    ) -> None:
+        """Test refresh endpoint rejects blocked users."""
+        refresh_token = create_refresh_token(
+            {"sub": str(blocked_user.id), "username": blocked_user.username}
+        )
+
+        response = await client.post(
+            "/api/v1/auth/refresh",
+            json={"refresh_token": refresh_token},
+        )
+
+        assert response.status_code == 403
+        assert "blocked" in response.json()["detail"].lower()
 
 
 class TestLogoutEndpoint:
