@@ -38,7 +38,11 @@ app = FastAPI(
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"] if settings.debug else [],
+    allow_origins=[
+       "http://localhost:3000",
+       "http://ai-agentmarket.com",
+       "http://www.ai-agentmarket.com",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
