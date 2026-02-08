@@ -11,6 +11,7 @@ from sqlalchemy.orm import selectinload
 from agent_marketplace_api.api.deps import AdminUserDep
 from agent_marketplace_api.database import get_db
 from agent_marketplace_api.models import Agent, Category, User, agent_categories
+from agent_marketplace_api.models.agent import AgentVersion
 from agent_marketplace_api.schemas.user import UserSummary
 
 router = APIRouter()
@@ -162,6 +163,7 @@ class AdminAgentUpdate(BaseModel):
     category: str | None = Field(None, min_length=1, max_length=100)
     is_public: bool | None = None
     is_validated: bool | None = None
+    storage_key: str | None = None
 
 
 class AdminAgentResponse(BaseModel):
@@ -179,6 +181,7 @@ class AdminAgentResponse(BaseModel):
     category: str
     is_public: bool = True
     is_validated: bool = False
+    storage_key: str | None = None
 
     class Config:
         from_attributes = True
@@ -215,7 +218,7 @@ async def list_agents_admin(
     """List all agents for admin. Includes private agents."""
     query = (
         select(Agent)
-        .options(selectinload(Agent.author), selectinload(Agent.categories))
+        .options(selectinload(Agent.author), selectinload(Agent.categories), selectinload(Agent.versions))
         .order_by(Agent.created_at.desc())
     )
 
@@ -239,6 +242,8 @@ async def list_agents_admin(
     items = []
     for agent in agents:
         cat_name = agent.categories[0].slug if agent.categories else "uncategorized"
+        # Get storage_key from the latest version
+        latest_version = max(agent.versions, key=lambda v: v.published_at) if agent.versions else None
         items.append(
             AdminAgentResponse(
                 id=agent.id,
@@ -257,6 +262,7 @@ async def list_agents_admin(
                 category=cat_name,
                 is_public=agent.is_public,
                 is_validated=agent.is_validated,
+                storage_key=latest_version.storage_key if latest_version else None,
             )
         )
 
@@ -273,7 +279,7 @@ async def update_agent_admin(
     """Update an agent. Admin only."""
     result = await db.execute(
         select(Agent)
-        .options(selectinload(Agent.author), selectinload(Agent.categories))
+        .options(selectinload(Agent.author), selectinload(Agent.categories), selectinload(Agent.versions))
         .where(Agent.slug == slug)
     )
     agent = result.scalar_one_or_none()
@@ -293,6 +299,11 @@ async def update_agent_admin(
         agent.is_public = data.is_public
     if data.is_validated is not None:
         agent.is_validated = data.is_validated
+
+    # Update storage_key on latest version
+    if data.storage_key is not None and agent.versions:
+        latest_version = max(agent.versions, key=lambda v: v.published_at)
+        latest_version.storage_key = data.storage_key
 
     # Handle category change
     if data.category is not None:
@@ -322,15 +333,16 @@ async def update_agent_admin(
     await db.commit()
     await db.refresh(agent)
 
-    # Reload categories
+    # Reload categories and versions
     result = await db.execute(
         select(Agent)
-        .options(selectinload(Agent.author), selectinload(Agent.categories))
+        .options(selectinload(Agent.author), selectinload(Agent.categories), selectinload(Agent.versions))
         .where(Agent.id == agent.id)
     )
     agent = result.scalar_one()
 
     cat_name = agent.categories[0].slug if agent.categories else "uncategorized"
+    latest_version = max(agent.versions, key=lambda v: v.published_at) if agent.versions else None
 
     return AdminAgentResponse(
         id=agent.id,
@@ -349,6 +361,7 @@ async def update_agent_admin(
         category=cat_name,
         is_public=agent.is_public,
         is_validated=agent.is_validated,
+        storage_key=latest_version.storage_key if latest_version else None,
     )
 
 
